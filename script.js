@@ -1229,6 +1229,7 @@ function cacheElements() {
   elements.endTurnBtn = document.querySelector("#endTurnBtn");
   elements.actionPanel = document.querySelector("#actionPanel");
   elements.gameLog = document.querySelector("#gameLog");
+  elements.playReveal = document.querySelector("#playReveal");
 }
 
 function bindStaticEvents() {
@@ -1593,6 +1594,9 @@ function startGame() {
     gameOver: false,
     pending: null,
     selectedAttacker: null,
+    revealing: false,
+    impacts: [],
+    impactTimer: null,
     log: [],
     player: createPlayer("你", "player", selectedOperator, playerDeck),
     ai: createPlayer("對手", "ai", "corp", aiDeck),
@@ -1692,11 +1696,13 @@ function renderHero(container, player) {
     </div>
   `;
   container.classList.toggle("targetable", isTargetNodeLegal({ kind: "hero", owner: player.side }));
+  container.classList.toggle("impact-shake", hasImpact("hero", player.side));
 }
 
 function renderBoard(container, player) {
   const slots = [...player.board];
   while (slots.length < MAX_BOARD) slots.push(null);
+  container.classList.toggle("impact-zone", hasImpact("board", player.side));
   container.innerHTML = slots
     .map((unit) => (unit ? renderUnit(unit, player) : `<div class="empty-slot">空位</div>`))
     .join("");
@@ -1714,7 +1720,7 @@ function renderUnit(unit, player) {
   const canCash = player.side === "player" && canPlayerAct();
 
   return `
-    <div class="unit-card target-node ${unit.canAttack && player.side === "player" ? "can-attack" : ""} ${selected ? "selected" : ""} ${targetable ? "targetable" : ""}"
+    <div class="unit-card target-node ${unit.canAttack && player.side === "player" ? "can-attack" : ""} ${selected ? "selected" : ""} ${targetable ? "targetable" : ""} ${hasImpact("unit", player.side, unit.uid) ? "impact-shake" : ""}"
       data-target-kind="unit"
       data-owner="${player.side}"
       data-uid="${unit.uid}"
@@ -1744,6 +1750,7 @@ function renderAttachedLuxury(attachment, card, canCash) {
 function renderOperatorLuxuries(container, player) {
   const slots = [...player.luxuries];
   while (slots.length < MAX_OPERATOR_LUXURIES) slots.push(null);
+  container.classList.toggle("impact-zone", hasImpact("luxury", player.side));
   container.innerHTML = slots
     .map((luxury) => {
       if (!luxury) return `<div class="empty-slot">角色裝備空位</div>`;
@@ -1793,6 +1800,104 @@ function renderHandCard(cardId, index) {
   `;
 }
 
+function showPlayedCard(card, owner) {
+  if (!game || !elements.playReveal) return Promise.resolve();
+  game.revealing = true;
+  elements.playReveal.hidden = false;
+  elements.playReveal.innerHTML = `
+    <article class="play-reveal-card" data-type="${card.type}">
+      <div class="play-reveal-label">${owner.side === "player" ? "你使用" : "對手使用"}</div>
+      <div class="card-topline">
+        <span class="cost-badge">${card.cost}</span>
+        <span class="type-chip">${CARD_TYPES[card.type]} ・ ${FACTIONS[card.faction]}</span>
+      </div>
+      <h3>${card.name}</h3>
+      <div class="card-art" style="${getArtStyle(card)}" aria-hidden="true"></div>
+      <p class="card-text">${card.text}</p>
+      <div class="card-footer">${renderCardStats(card)}</div>
+    </article>
+  `;
+
+  return new Promise((resolve) => {
+    window.setTimeout(() => {
+      elements.playReveal.hidden = true;
+      elements.playReveal.innerHTML = "";
+      if (game) game.revealing = false;
+      resolve();
+    }, 2000);
+  });
+}
+
+function hasImpact(kind, owner, uid = null) {
+  return Boolean(
+    game?.impacts?.some((impact) => {
+      return impact.kind === kind && impact.owner === owner && (uid === null || impact.uid === uid);
+    }),
+  );
+}
+
+function addImpact(kind, owner, uid = null) {
+  if (!game) return;
+  const impact = { kind, owner, uid };
+  const exists = game.impacts.some((item) => item.kind === kind && item.owner === owner && item.uid === uid);
+  if (!exists) game.impacts.push(impact);
+}
+
+function markTargetImpact(target) {
+  if (!target) return;
+  if (target.kind === "hero") {
+    addImpact("hero", target.owner);
+    return;
+  }
+  if (target.kind === "unit") {
+    addImpact("unit", target.owner, target.uid);
+    addImpact("board", target.owner);
+  }
+}
+
+function markCardImpact(card, owner, opponent, target, summonedUnit = null) {
+  if (target) markTargetImpact(target);
+
+  if (summonedUnit) {
+    addImpact("unit", owner.side, summonedUnit.uid);
+    addImpact("board", owner.side);
+  }
+
+  if (card.type === "luxury") {
+    addImpact("luxury", owner.side);
+  }
+
+  const effect = card.effect || "";
+  const affectsOwner =
+    card.type === "unit" ||
+    effect.includes("draw") ||
+    effect.includes("heal") ||
+    effect.includes("shield") ||
+    effect.includes("ready") ||
+    effect.includes("summon") ||
+    effect.includes("buff") ||
+    effect.includes("discount");
+  const affectsEnemy = effect.includes("deal") || effect.includes("enemy") || effect.includes("freeze");
+
+  if (affectsOwner) addImpact("hero", owner.side);
+  if (effect.includes("ready") || effect.includes("summon") || effect.includes("buff")) addImpact("board", owner.side);
+  if (affectsEnemy && !target) {
+    addImpact("hero", opponent.side);
+    addImpact("board", opponent.side);
+  }
+}
+
+function clearImpactsSoon() {
+  if (!game) return;
+  if (game.impactTimer) window.clearTimeout(game.impactTimer);
+  game.impactTimer = window.setTimeout(() => {
+    if (!game) return;
+    game.impacts = [];
+    game.impactTimer = null;
+    renderGame();
+  }, 720);
+}
+
 function renderTurnBar() {
   const playerOperator = OPERATORS[game.player.operatorId];
   elements.heroSkillBtn.textContent = `${playerOperator.skillName} · ${playerOperator.skillCost}`;
@@ -1806,6 +1911,8 @@ function renderTurnBar() {
     elements.turnStatus.textContent = game.player.life > 0 ? "你贏了" : "你輸了";
   } else if (game.awaitMulligan) {
     elements.turnStatus.textContent = "起手選擇";
+  } else if (game.revealing) {
+    elements.turnStatus.textContent = "卡牌展示中";
   } else if (game.pending) {
     elements.turnStatus.textContent = "選擇裝備或效果目標";
   } else if (game.selectedAttacker) {
@@ -1917,7 +2024,7 @@ function mulliganHand() {
   renderGame();
 }
 
-function playCardFromHand(handIndex) {
+async function playCardFromHand(handIndex) {
   if (!canPlayerAct() || game.pending || game.selectedAttacker) return;
   const cardId = game.player.hand[handIndex];
   const card = CARD_BY_ID[cardId];
@@ -1931,10 +2038,18 @@ function playCardFromHand(handIndex) {
     return;
   }
 
-  resolvePlayCard(game.player, game.ai, handIndex, null);
+  await playCardWithReveal(game.player, game.ai, handIndex, null);
 }
 
-function handleTargetClick(target) {
+async function playCardWithReveal(owner, opponent, handIndex, target) {
+  const cardId = owner.hand[handIndex];
+  const card = CARD_BY_ID[cardId];
+  if (!card || !canPlayCard(owner, card)) return;
+  await showPlayedCard(card, owner);
+  resolvePlayCard(owner, opponent, handIndex, target);
+}
+
+async function handleTargetClick(target) {
   if (!canPlayerAct()) return;
 
   if (game.pending) {
@@ -1942,7 +2057,8 @@ function handleTargetClick(target) {
     if (!isLegalCardTarget(card, game.player, game.ai, target)) return;
     const handIndex = game.pending.handIndex;
     game.pending = null;
-    resolvePlayCard(game.player, game.ai, handIndex, target);
+    renderGame();
+    await playCardWithReveal(game.player, game.ai, handIndex, target);
     return;
   }
 
@@ -1971,8 +2087,9 @@ function resolvePlayCard(owner, opponent, handIndex, target) {
   owner.hand.splice(handIndex, 1);
   owner.discard.push(card.id);
 
+  let summonedUnit = null;
   if (card.type === "unit") {
-    summonUnit(owner, opponent, card);
+    summonedUnit = summonUnit(owner, opponent, card);
   } else if (card.type === "luxury") {
     attachLuxury(owner, card, target);
   } else {
@@ -1982,12 +2099,14 @@ function resolvePlayCard(owner, opponent, handIndex, target) {
   }
 
   cleanupDeadUnits();
+  markCardImpact(card, owner, opponent, target, summonedUnit);
   checkGameOver();
   renderGame();
+  clearImpactsSoon();
 }
 
 function summonUnit(owner, opponent, card) {
-  if (owner.board.length >= MAX_BOARD) return;
+  if (owner.board.length >= MAX_BOARD) return null;
   const unit = {
     uid: `u${unitSeq++}`,
     owner: owner.side,
@@ -2019,6 +2138,7 @@ function summonUnit(owner, opponent, card) {
   owner.board.push(unit);
   addLog(`${owner.name}召喚「${card.name}」。`);
   applyCardEffect(card, owner, opponent, null);
+  return unit;
 }
 
 function attachLuxury(owner, card, target) {
@@ -2238,10 +2358,14 @@ function cashLuxury(uid) {
   const card = CARD_BY_ID[found.attachment.cardId];
   detachLuxury(owner, found);
   applyLuxuryCashEffect(owner, opponent, card.id);
+  addImpact("hero", owner.side);
+  addImpact("board", owner.side);
+  addImpact("luxury", owner.side);
   addLog(`${owner.name}變現「${card.name}」。`);
   cleanupDeadUnits();
   checkGameOver();
   renderGame();
+  clearImpactsSoon();
 }
 
 function findLuxuryAttachment(owner, uid) {
@@ -2335,15 +2459,19 @@ function useHeroSkill() {
 
   if (player.operatorId === "merc") {
     damageHero(opponent, player.flags.playedLuxuryThisTurn ? 2 : 1, player);
+    addImpact("hero", opponent.side);
   } else if (player.operatorId === "hacker") {
     drawCards(player, 1);
+    addImpact("hero", player.side);
   } else if (player.operatorId === "corp") {
     gainShield(player, 2);
+    addImpact("hero", player.side);
   }
 
   addLog(`${player.name}啟動「${operator.skillName}」。`);
   checkGameOver();
   renderGame();
+  clearImpactsSoon();
 }
 
 function endPlayerTurn() {
@@ -2360,7 +2488,7 @@ function endPlayerTurn() {
   window.setTimeout(runAiTurn, 550);
 }
 
-function runAiTurn() {
+async function runAiTurn() {
   if (!game || game.gameOver) return;
   startTurn(game.ai, game.player);
 
@@ -2369,7 +2497,7 @@ function runAiTurn() {
     guard += 1;
     const playableIndex = chooseAiPlayableCard();
     if (playableIndex < 0) break;
-    playAiCard(playableIndex);
+    await playAiCard(playableIndex);
     if (game.gameOver) break;
   }
 
@@ -2382,6 +2510,7 @@ function runAiTurn() {
     addLog("輪到你了。");
   }
   renderGame();
+  clearImpactsSoon();
 }
 
 function chooseAiPlayableCard() {
@@ -2404,13 +2533,13 @@ function getAiCardScore(card) {
   return 5 + card.cost;
 }
 
-function playAiCard(handIndex) {
+async function playAiCard(handIndex) {
   const owner = game.ai;
   const opponent = game.player;
   const card = CARD_BY_ID[owner.hand[handIndex]];
   const target = chooseAiTarget(card);
   if (needsTarget(card) && !target) return;
-  resolvePlayCard(owner, opponent, handIndex, target);
+  await playCardWithReveal(owner, opponent, handIndex, target);
 }
 
 function chooseAiTarget(card) {
@@ -2555,6 +2684,8 @@ function resolveAttack(owner, opponent, attackerUid, target, shouldRender = true
 
   attacker.canAttack = false;
   game.selectedAttacker = null;
+  addImpact("unit", owner.side, attacker.uid);
+  markTargetImpact(target);
 
   if (target.kind === "hero") {
     damageHero(opponent, attacker.attack, owner);
@@ -2569,7 +2700,10 @@ function resolveAttack(owner, opponent, attackerUid, target, shouldRender = true
 
   cleanupDeadUnits();
   checkGameOver();
-  if (shouldRender) renderGame();
+  if (shouldRender) {
+    renderGame();
+    clearImpactsSoon();
+  }
 }
 
 function canPlayCard(player, card) {
@@ -2582,7 +2716,7 @@ function canPlayCard(player, card) {
 }
 
 function canPlayerAct() {
-  return Boolean(game && game.turn === "player" && !game.awaitMulligan && !game.gameOver);
+  return Boolean(game && game.turn === "player" && !game.awaitMulligan && !game.gameOver && !game.revealing);
 }
 
 function needsTarget(card) {
