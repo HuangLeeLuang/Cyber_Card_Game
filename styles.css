@@ -377,8 +377,8 @@ p {
   border-radius: 6px;
   background-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.24)),
-    url("assets/card-art-atlas.png");
-  background-size: auto, 600% 600%;
+    var(--art-image, url("assets/card-art-atlas.png"));
+  background-size: auto, var(--art-size, 600% 600%);
   background-position: center, var(--art-x, 0%) var(--art-y, 0%);
   background-repeat: no-repeat;
 }
@@ -616,8 +616,8 @@ p {
 .luxury-thumb {
   background-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.24)),
-    url("assets/card-art-atlas.png");
-  background-size: auto, 600% 600%;
+    var(--art-image, url("assets/card-art-atlas.png"));
+  background-size: auto, var(--art-size, 600% 600%);
   background-position: center, var(--art-x, 0%) var(--art-y, 0%);
   background-repeat: no-repeat;
 }

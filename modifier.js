@@ -1,5 +1,9 @@
 const data = window.CYBER_CARD_DATA;
 const STORAGE_KEY = "cyberCardGameMods";
+const ART_ATLASES = {
+  1: { columns: 6, rows: 6, image: 'url("assets/card-art-atlas.png")' },
+  2: { columns: 10, rows: 6, image: 'url("assets/card-art-atlas-2.png")' },
+};
 const ruleFields = [
   ["deckSize", "牌組張數", 8, 30],
   ["maxBoard", "場上單位上限", 2, 8],
@@ -176,9 +180,12 @@ function setStatus(text) {
 
 function getArtStyle(card) {
   const art = Number.isFinite(card?.art) ? card.art : 0;
-  const col = art % 6;
-  const row = Math.floor(art / 6);
-  return `--art-x:${col * 20}%;--art-y:${row * 20}%;`;
+  const atlas = ART_ATLASES[card?.atlas || 1] || ART_ATLASES[1];
+  const col = art % atlas.columns;
+  const row = Math.floor(art / atlas.columns);
+  const x = atlas.columns > 1 ? (col / (atlas.columns - 1)) * 100 : 0;
+  const y = atlas.rows > 1 ? (row / (atlas.rows - 1)) * 100 : 0;
+  return `--art-image:${atlas.image};--art-size:${atlas.columns * 100}% ${atlas.rows * 100}%;--art-x:${x}%;--art-y:${y}%;`;
 }
 
 function clampInt(value, min, max, fallback) {
