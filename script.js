@@ -1,0 +1,1967 @@
+const CARD_TYPES = {
+  unit: "單位",
+  program: "程式",
+  mod: "改造",
+  luxury: "奢侈品",
+};
+
+const FACTIONS = {
+  neutral: "中立",
+  merc: "街頭",
+  hacker: "駭客",
+  corp: "企業",
+};
+
+const OPERATORS = {
+  merc: {
+    id: "merc",
+    name: "街頭傭兵",
+    style: "快攻、速攻、武器爆發",
+    skillName: "火力壓制",
+    skillCost: 2,
+    skillText: "造成 1 點傷害；本回合打出奢侈品後改為 2 點。",
+  },
+  hacker: {
+    id: "hacker",
+    name: "黑帽駭客",
+    style: "抽牌、干擾、病毒傷害",
+    skillName: "資料竊取",
+    skillCost: 2,
+    skillText: "抽 1 張牌。",
+  },
+  corp: {
+    id: "corp",
+    name: "企業主管",
+    style: "護盾、守衛、資產滾動",
+    skillName: "信用護盾",
+    skillCost: 2,
+    skillText: "獲得 2 點護盾。",
+  },
+};
+
+const CARDS = [
+  {
+    id: "chrome_runner",
+    name: "鍍鉻跑腿",
+    type: "unit",
+    faction: "neutral",
+    cost: 1,
+    attack: 1,
+    health: 2,
+    art: 0,
+    text: "便宜可靠的街頭單位。",
+  },
+  {
+    id: "market_drone",
+    name: "市場無人機",
+    type: "unit",
+    faction: "neutral",
+    cost: 1,
+    attack: 1,
+    health: 1,
+    art: 1,
+    text: "入場：若你有已裝備的奢侈品，抽 1 張牌。",
+    effect: "draw_if_luxury",
+  },
+  {
+    id: "street_medic",
+    name: "黑診所醫師",
+    type: "unit",
+    faction: "neutral",
+    cost: 2,
+    attack: 1,
+    health: 3,
+    art: 2,
+    text: "入場：恢復 2 點生命。",
+    effect: "heal_hero_2",
+  },
+  {
+    id: "security_bot",
+    name: "安保機器人",
+    type: "unit",
+    faction: "neutral",
+    cost: 3,
+    attack: 2,
+    health: 4,
+    guard: true,
+    art: 3,
+    text: "守衛。",
+  },
+  {
+    id: "emp_pulse",
+    name: "電磁脈衝",
+    type: "program",
+    faction: "neutral",
+    cost: 2,
+    target: "enemy",
+    art: 5,
+    text: "造成 2 點傷害。",
+    effect: "deal_2",
+  },
+  {
+    id: "data_broker",
+    name: "資料掮客",
+    type: "program",
+    faction: "neutral",
+    cost: 2,
+    art: 26,
+    text: "抽 2 張牌。",
+    effect: "draw_2",
+  },
+  {
+    id: "neural_reflex",
+    name: "反射神經",
+    type: "mod",
+    faction: "neutral",
+    cost: 1,
+    target: "friendlyUnit",
+    art: 7,
+    text: "一個友方單位 +1/+1，並可立即攻擊。",
+    effect: "buff_1_1_ready",
+  },
+  {
+    id: "alloy_skin",
+    name: "合金皮層",
+    type: "mod",
+    faction: "neutral",
+    cost: 2,
+    target: "friendlyUnit",
+    art: 24,
+    text: "一個友方單位 +0/+3 並獲得守衛。",
+    effect: "buff_0_3_guard",
+  },
+  {
+    id: "cyber_car",
+    name: "賽博超跑",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    art: 9,
+    text: "裝備單位：+1 攻擊並可攻擊。裝備操作者：每回合第一個單位可立即攻擊。變現：本回合獲得 2 能量。",
+    cashText: "本回合獲得 2 能量。",
+  },
+  {
+    id: "limited_watch",
+    name: "限量名錶",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    art: 10,
+    text: "裝備單位：+0/+1。裝備操作者：回合開始時若手牌少於對手，抽 1 張。變現：下一張牌費用 -2。",
+    cashText: "下一張牌費用 -2。",
+  },
+  {
+    id: "black_card_bag",
+    name: "黑卡名包",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    art: 11,
+    text: "裝備單位：+1/+1。裝備操作者：手牌上限 +2。變現：抽 2 張牌。",
+    cashText: "抽 2 張牌。",
+  },
+  {
+    id: "limited_sneakers",
+    name: "限量球鞋",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    art: 12,
+    text: "裝備單位：+1 攻擊並可攻擊。裝備操作者：你的 1 費單位入場時 +1 攻擊。變現：所有友方單位可攻擊。",
+    cashText: "所有友方單位可攻擊。",
+  },
+  {
+    id: "designer_jacket",
+    name: "高訂戰術外套",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    art: 13,
+    text: "裝備單位：+0/+3 並獲得守衛。裝備操作者：每回合第一次受到的英雄傷害 -1。變現：獲得 3 護盾。",
+    cashText: "獲得 3 護盾。",
+  },
+  {
+    id: "sky_estate",
+    name: "空中豪宅",
+    type: "luxury",
+    faction: "neutral",
+    cost: 3,
+    art: 14,
+    text: "裝備單位：+0/+2 並獲得守衛。裝備操作者：回合結束時獲得 1 護盾。變現：恢復 4 生命。",
+    cashText: "恢復 4 生命。",
+  },
+  {
+    id: "private_jet",
+    name: "私人噴射機",
+    type: "luxury",
+    faction: "neutral",
+    cost: 3,
+    art: 15,
+    text: "裝備單位：+1 攻擊並可攻擊。裝備操作者：每回合第一張程式費用 -1。變現：全隊可攻擊。",
+    cashText: "全隊可攻擊。",
+  },
+  {
+    id: "luxury_cruise",
+    name: "星港郵輪",
+    type: "luxury",
+    faction: "neutral",
+    cost: 4,
+    art: 16,
+    text: "裝備單位：+0/+2 並獲得守衛。裝備操作者：回合結束時若生命低於對手，恢復 1。變現：召喚兩名 1/2 守衛。",
+    cashText: "召喚兩名 1/2 守衛。",
+  },
+  {
+    id: "flash_splicer",
+    name: "快閃械手",
+    type: "unit",
+    faction: "merc",
+    cost: 1,
+    attack: 2,
+    health: 1,
+    charge: true,
+    art: 17,
+    text: "速攻。",
+  },
+  {
+    id: "blade_courier",
+    name: "電磁刀客",
+    type: "unit",
+    faction: "merc",
+    cost: 2,
+    attack: 3,
+    health: 2,
+    art: 18,
+    text: "高攻擊低生命的壓力單位。",
+  },
+  {
+    id: "contract_killer",
+    name: "合約獵手",
+    type: "unit",
+    faction: "merc",
+    cost: 3,
+    attack: 4,
+    health: 2,
+    charge: true,
+    art: 6,
+    text: "速攻。",
+  },
+  {
+    id: "overclock_strike",
+    name: "超頻斬擊",
+    type: "program",
+    faction: "merc",
+    cost: 1,
+    target: "enemy",
+    art: 20,
+    text: "造成 1 點傷害。若你有已裝備的奢侈品，改為 2 點。",
+    effect: "deal_1_luxury_2",
+  },
+  {
+    id: "weapon_contract",
+    name: "武器合約",
+    type: "program",
+    faction: "merc",
+    cost: 2,
+    target: "friendlyUnit",
+    art: 27,
+    text: "一個友方單位本回合 +2 攻擊，並可立即攻擊。",
+    effect: "buff_attack_2_ready",
+  },
+  {
+    id: "carbon_blade",
+    name: "碳纖維刀臂",
+    type: "mod",
+    faction: "merc",
+    cost: 2,
+    target: "friendlyUnit",
+    art: 25,
+    text: "一個友方單位 +2/+0。",
+    effect: "buff_2_0",
+  },
+  {
+    id: "packet_ghost",
+    name: "封包幽靈",
+    type: "unit",
+    faction: "hacker",
+    cost: 1,
+    attack: 1,
+    health: 3,
+    art: 29,
+    text: "耐打的低費駭客。",
+  },
+  {
+    id: "daemon_swarm",
+    name: "惡意程式群",
+    type: "unit",
+    faction: "hacker",
+    cost: 2,
+    attack: 2,
+    health: 2,
+    art: 19,
+    text: "入場：對敵方英雄造成 1 點傷害。",
+    effect: "ping_enemy_hero",
+  },
+  {
+    id: "backdoor_agent",
+    name: "後門特工",
+    type: "unit",
+    faction: "hacker",
+    cost: 3,
+    attack: 3,
+    health: 3,
+    art: 30,
+    text: "入場：抽 1 張牌。",
+    effect: "draw_1",
+  },
+  {
+    id: "virus_inject",
+    name: "病毒注入",
+    type: "program",
+    faction: "hacker",
+    cost: 2,
+    target: "enemy",
+    art: 35,
+    text: "造成 2 點傷害，抽 1 張牌。",
+    effect: "deal_2_draw_1",
+  },
+  {
+    id: "packet_theft",
+    name: "封包竊取",
+    type: "program",
+    faction: "hacker",
+    cost: 1,
+    art: 4,
+    text: "抽 1 張牌，敵方失去 1 點護盾。",
+    effect: "draw_1_break_shield",
+  },
+  {
+    id: "logic_trap",
+    name: "邏輯陷阱",
+    type: "program",
+    faction: "hacker",
+    cost: 3,
+    art: 23,
+    text: "敵方所有單位 -1 攻擊。",
+    effect: "enemy_units_minus_1_attack",
+  },
+  {
+    id: "security_intern",
+    name: "安保實習生",
+    type: "unit",
+    faction: "corp",
+    cost: 1,
+    attack: 1,
+    health: 2,
+    guard: true,
+    art: 21,
+    text: "守衛。",
+  },
+  {
+    id: "corp_guard",
+    name: "企業保鑣",
+    type: "unit",
+    faction: "corp",
+    cost: 2,
+    attack: 2,
+    health: 3,
+    guard: true,
+    art: 22,
+    text: "守衛。",
+  },
+  {
+    id: "executive_drone",
+    name: "董事無人機",
+    type: "unit",
+    faction: "corp",
+    cost: 3,
+    attack: 3,
+    health: 3,
+    art: 28,
+    text: "入場：獲得 1 點護盾。",
+    effect: "gain_shield_1",
+  },
+  {
+    id: "credit_audit",
+    name: "信用稽核",
+    type: "program",
+    faction: "corp",
+    cost: 2,
+    target: "enemy",
+    art: 33,
+    text: "造成 2 點傷害，獲得 1 點護盾。",
+    effect: "deal_2_gain_shield_1",
+  },
+  {
+    id: "asset_freeze",
+    name: "資產凍結",
+    type: "program",
+    faction: "corp",
+    cost: 2,
+    target: "enemyUnit",
+    art: 34,
+    text: "造成 1 點傷害，並使目標下回合不能攻擊。",
+    effect: "deal_1_freeze",
+  },
+  {
+    id: "premium_armor",
+    name: "白金防彈衣",
+    type: "mod",
+    faction: "corp",
+    cost: 2,
+    target: "friendlyUnit",
+    art: 31,
+    text: "一個友方單位 +1/+2 並獲得守衛。",
+    effect: "buff_1_2_guard",
+  },
+];
+
+const ORIGINAL_CARDS = CARDS.map((card) => ({ ...card }));
+const DEFAULT_RULES = {
+  deckSize: 15,
+  maxBoard: 4,
+  maxOperatorLuxuries: 2,
+  maxDeckLuxuries: 4,
+  baseHandLimit: 7,
+  startingLife: 20,
+  maxEnergy: 5,
+  openingHand: 3,
+  drawPerTurn: 1,
+};
+const ACTIVE_MODS = loadStoredMods();
+const ACTIVE_RULES = ACTIVE_MODS.rules;
+
+applyStoredCardMods(ACTIVE_MODS.cards);
+
+const CARD_BY_ID = Object.fromEntries(CARDS.map((card) => [card.id, card]));
+const DECK_SIZE = ACTIVE_RULES.deckSize;
+const MAX_BOARD = ACTIVE_RULES.maxBoard;
+const MAX_OPERATOR_LUXURIES = ACTIVE_RULES.maxOperatorLuxuries;
+const MAX_DECK_LUXURIES = ACTIVE_RULES.maxDeckLuxuries;
+const BASE_HAND_LIMIT = ACTIVE_RULES.baseHandLimit;
+const STARTING_LIFE = ACTIVE_RULES.startingLife;
+const MAX_ENERGY = ACTIVE_RULES.maxEnergy;
+const OPENING_HAND = ACTIVE_RULES.openingHand;
+const DRAW_PER_TURN = ACTIVE_RULES.drawPerTurn;
+const ATLAS_COLUMNS = 6;
+
+let selectedOperator = "merc";
+let activeFilter = "all";
+let deckCounts = {};
+let unitSeq = 1;
+let luxurySeq = 1;
+let game = null;
+
+const elements = {};
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!document.querySelector("#cardLibrary")) return;
+  cacheElements();
+  bindStaticEvents();
+  loadDeck();
+  renderBuilder();
+  showView("builder");
+});
+
+if (typeof window !== "undefined") {
+  window.CYBER_CARD_DATA = {
+    cards: CARDS,
+    originalCards: ORIGINAL_CARDS,
+    cardTypes: CARD_TYPES,
+    factions: FACTIONS,
+    operators: OPERATORS,
+    defaultRules: DEFAULT_RULES,
+    activeRules: ACTIVE_RULES,
+  };
+}
+
+function cacheElements() {
+  elements.operatorList = document.querySelector("#operatorList");
+  elements.operatorDetail = document.querySelector("#operatorDetail");
+  elements.cardLibrary = document.querySelector("#cardLibrary");
+  elements.deckList = document.querySelector("#deckList");
+  elements.deckCount = document.querySelector("#deckCount");
+  elements.luxuryCount = document.querySelector("#luxuryCount");
+  elements.deckMeterFill = document.querySelector("#deckMeterFill");
+  elements.startGameBtn = document.querySelector("#startGameBtn");
+  elements.quickBuildBtn = document.querySelector("#quickBuildBtn");
+  elements.clearDeckBtn = document.querySelector("#clearDeckBtn");
+  elements.builderView = document.querySelector("#builderView");
+  elements.gameView = document.querySelector("#gameView");
+  elements.playerHero = document.querySelector("#playerHero");
+  elements.aiHero = document.querySelector("#aiHero");
+  elements.playerBoard = document.querySelector("#playerBoard");
+  elements.aiBoard = document.querySelector("#aiBoard");
+  elements.playerLuxuries = document.querySelector("#playerLuxuries");
+  elements.aiLuxuries = document.querySelector("#aiLuxuries");
+  elements.playerHand = document.querySelector("#playerHand");
+  elements.aiHandCount = document.querySelector("#aiHandCount");
+  elements.turnStatus = document.querySelector("#turnStatus");
+  elements.heroSkillBtn = document.querySelector("#heroSkillBtn");
+  elements.endTurnBtn = document.querySelector("#endTurnBtn");
+  elements.actionPanel = document.querySelector("#actionPanel");
+  elements.gameLog = document.querySelector("#gameLog");
+}
+
+function bindStaticEvents() {
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", () => showView(button.dataset.view));
+  });
+
+  document.querySelectorAll(".filter-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeFilter = button.dataset.filter;
+      document.querySelectorAll(".filter-button").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      renderLibrary();
+    });
+  });
+
+  elements.quickBuildBtn.addEventListener("click", quickBuildDeck);
+  elements.clearDeckBtn.addEventListener("click", () => {
+    deckCounts = {};
+    saveDeck();
+    renderBuilder();
+  });
+  elements.startGameBtn.addEventListener("click", startGame);
+  elements.endTurnBtn.addEventListener("click", endPlayerTurn);
+  elements.heroSkillBtn.addEventListener("click", useHeroSkill);
+}
+
+function showView(view) {
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === view);
+  });
+  elements.builderView.classList.toggle("active", view === "builder");
+  elements.gameView.classList.toggle("active", view === "game");
+}
+
+function loadStoredMods() {
+  const mods = {
+    rules: { ...DEFAULT_RULES },
+    cards: {},
+  };
+  if (typeof localStorage === "undefined") return mods;
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("cyberCardGameMods") || "{}");
+    if (saved.rules && typeof saved.rules === "object") {
+      mods.rules.deckSize = clampInt(saved.rules.deckSize, 8, 30, DEFAULT_RULES.deckSize);
+      mods.rules.maxBoard = clampInt(saved.rules.maxBoard, 2, 8, DEFAULT_RULES.maxBoard);
+      mods.rules.maxOperatorLuxuries = clampInt(saved.rules.maxOperatorLuxuries, 0, 4, DEFAULT_RULES.maxOperatorLuxuries);
+      mods.rules.maxDeckLuxuries = clampInt(saved.rules.maxDeckLuxuries, 0, 10, DEFAULT_RULES.maxDeckLuxuries);
+      mods.rules.baseHandLimit = clampInt(saved.rules.baseHandLimit, 3, 12, DEFAULT_RULES.baseHandLimit);
+      mods.rules.startingLife = clampInt(saved.rules.startingLife, 8, 40, DEFAULT_RULES.startingLife);
+      mods.rules.maxEnergy = clampInt(saved.rules.maxEnergy, 3, 12, DEFAULT_RULES.maxEnergy);
+      mods.rules.openingHand = clampInt(saved.rules.openingHand, 1, 8, DEFAULT_RULES.openingHand);
+      mods.rules.drawPerTurn = clampInt(saved.rules.drawPerTurn, 1, 4, DEFAULT_RULES.drawPerTurn);
+    }
+    if (saved.cards && typeof saved.cards === "object") {
+      mods.cards = saved.cards;
+    }
+  } catch {
+    return mods;
+  }
+
+  mods.rules.maxDeckLuxuries = Math.min(mods.rules.maxDeckLuxuries, mods.rules.deckSize);
+  return mods;
+}
+
+function applyStoredCardMods(cardMods) {
+  if (!cardMods || typeof cardMods !== "object") return;
+  CARDS.forEach((card) => {
+    const mod = cardMods[card.id];
+    if (!mod || typeof mod !== "object") return;
+    card.cost = clampInt(mod.cost, 0, 12, card.cost);
+    if (card.type === "unit") {
+      card.attack = clampInt(mod.attack, 0, 12, card.attack);
+      card.health = clampInt(mod.health, 1, 20, card.health);
+    }
+    if (typeof mod.text === "string" && mod.text.trim()) {
+      card.text = mod.text.trim().slice(0, 160);
+    }
+  });
+}
+
+function clampInt(value, min, max, fallback) {
+  const number = Number.parseInt(value, 10);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.max(min, Math.min(max, number));
+}
+
+function loadDeck() {
+  try {
+    const raw = localStorage.getItem("cyberCardDeck") || "{}";
+    const saved = JSON.parse(raw);
+    if (saved.operator && OPERATORS[saved.operator]) selectedOperator = saved.operator;
+    if (saved.counts && typeof saved.counts === "object") deckCounts = saved.counts;
+  } catch {
+    deckCounts = {};
+  }
+  removeInvalidDeckCards();
+}
+
+function saveDeck() {
+  localStorage.setItem(
+    "cyberCardDeck",
+    JSON.stringify({
+      operator: selectedOperator,
+      counts: deckCounts,
+    }),
+  );
+}
+
+function renderBuilder() {
+  renderOperators();
+  renderLibrary();
+  renderDeckList();
+}
+
+function renderOperators() {
+  elements.operatorList.innerHTML = Object.values(OPERATORS)
+    .map(
+      (operator) => `
+        <button class="operator-button ${operator.id === selectedOperator ? "active" : ""}" data-operator="${operator.id}">
+          <strong>${operator.name}</strong>
+          <span>${operator.style}</span>
+        </button>
+      `,
+    )
+    .join("");
+
+  elements.operatorList.querySelectorAll(".operator-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedOperator = button.dataset.operator;
+      removeInvalidDeckCards();
+      saveDeck();
+      renderBuilder();
+    });
+  });
+
+  const operator = OPERATORS[selectedOperator];
+  elements.operatorDetail.innerHTML = `
+    <strong>${operator.skillName}</strong>
+    <span>${operator.skillCost} 能量：${operator.skillText}</span>
+  `;
+}
+
+function renderLibrary() {
+  const cards = CARDS.filter((card) => {
+    const factionAllowed = card.faction === "neutral" || card.faction === selectedOperator;
+    const typeAllowed = activeFilter === "all" || card.type === activeFilter;
+    return factionAllowed && typeAllowed;
+  });
+
+  elements.cardLibrary.innerHTML = cards.map((card) => renderCatalogCard(card)).join("");
+  elements.cardLibrary.querySelectorAll("[data-add-card]").forEach((button) => {
+    button.addEventListener("click", () => addCardToDeck(button.dataset.addCard));
+  });
+  elements.cardLibrary.querySelectorAll("[data-remove-card]").forEach((button) => {
+    button.addEventListener("click", () => removeCardFromDeck(button.dataset.removeCard));
+  });
+}
+
+function renderCatalogCard(card) {
+  const count = deckCounts[card.id] || 0;
+  const total = getDeckTotal();
+  const luxuryTotal = getDeckLuxuryTotal();
+  const maxCopies = getMaxCopies(card);
+  const canAdd =
+    total < DECK_SIZE &&
+    count < maxCopies &&
+    (card.type !== "luxury" || luxuryTotal < MAX_DECK_LUXURIES);
+
+  return `
+    <article class="catalog-card" data-type="${card.type}">
+      <div class="card-topline">
+        <span class="cost-badge">${card.cost}</span>
+        <span class="type-chip">${CARD_TYPES[card.type]} · ${FACTIONS[card.faction]}</span>
+      </div>
+      <h3>${card.name}</h3>
+      <div class="card-art" style="${getArtStyle(card)}" aria-hidden="true"></div>
+      <p class="card-text">${card.text}</p>
+      <div class="card-footer">
+        ${renderCardStats(card)}
+        <div class="count-controls">
+          <button class="card-action" data-remove-card="${card.id}" ${count === 0 ? "disabled" : ""}>−</button>
+          <span class="count-number">${count}</span>
+          <button class="card-action" data-add-card="${card.id}" ${canAdd ? "" : "disabled"}>＋</button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderCardStats(card) {
+  if (card.type !== "unit") {
+    return `<span class="type-chip">${card.type === "luxury" ? "裝備 / 變現" : "即時效果"}</span>`;
+  }
+  return `
+    <div class="stats">
+      <span class="stat-badge">${card.attack}</span>
+      <span class="stat-badge danger">${card.health}</span>
+    </div>
+  `;
+}
+
+function renderDeckList() {
+  const entries = Object.entries(deckCounts)
+    .filter(([, count]) => count > 0)
+    .sort(([a], [b]) => CARD_BY_ID[a].cost - CARD_BY_ID[b].cost || CARD_BY_ID[a].name.localeCompare(CARD_BY_ID[b].name));
+
+  elements.deckList.innerHTML =
+    entries.length === 0
+      ? `<div class="empty-message">尚未加入卡牌</div>`
+      : entries
+          .map(([id, count]) => {
+            const card = CARD_BY_ID[id];
+            return `
+              <div class="deck-entry" data-type="${card.type}">
+                <span class="cost-badge">${card.cost}</span>
+                <div>
+                  <div class="deck-entry-name">${card.name}</div>
+                  <div class="deck-entry-type">${CARD_TYPES[card.type]}</div>
+                </div>
+                <strong>x${count}</strong>
+              </div>
+            `;
+          })
+          .join("");
+
+  const total = getDeckTotal();
+  const luxuryTotal = getDeckLuxuryTotal();
+  elements.deckCount.textContent = `${total} / ${DECK_SIZE}`;
+  elements.luxuryCount.textContent = `奢侈品 ${luxuryTotal} / ${MAX_DECK_LUXURIES}`;
+  elements.deckMeterFill.style.width = `${Math.min(100, (total / DECK_SIZE) * 100)}%`;
+  elements.startGameBtn.disabled = total !== DECK_SIZE;
+}
+
+function addCardToDeck(cardId) {
+  const card = CARD_BY_ID[cardId];
+  if (!card) return;
+  const count = deckCounts[cardId] || 0;
+  if (getDeckTotal() >= DECK_SIZE) return;
+  if (count >= getMaxCopies(card)) return;
+  if (card.type === "luxury" && getDeckLuxuryTotal() >= MAX_DECK_LUXURIES) return;
+  deckCounts[cardId] = count + 1;
+  saveDeck();
+  renderBuilder();
+}
+
+function removeCardFromDeck(cardId) {
+  if (!deckCounts[cardId]) return;
+  deckCounts[cardId] -= 1;
+  if (deckCounts[cardId] <= 0) delete deckCounts[cardId];
+  saveDeck();
+  renderBuilder();
+}
+
+function quickBuildDeck() {
+  const recipes = {
+    merc: [
+      "flash_splicer",
+      "flash_splicer",
+      "blade_courier",
+      "blade_courier",
+      "contract_killer",
+      "overclock_strike",
+      "overclock_strike",
+      "weapon_contract",
+      "carbon_blade",
+      "chrome_runner",
+      "market_drone",
+      "neural_reflex",
+      "cyber_car",
+      "limited_sneakers",
+      "private_jet",
+    ],
+    hacker: [
+      "packet_ghost",
+      "packet_ghost",
+      "daemon_swarm",
+      "daemon_swarm",
+      "backdoor_agent",
+      "virus_inject",
+      "virus_inject",
+      "packet_theft",
+      "logic_trap",
+      "market_drone",
+      "data_broker",
+      "emp_pulse",
+      "limited_watch",
+      "black_card_bag",
+      "private_jet",
+    ],
+    corp: [
+      "security_intern",
+      "security_intern",
+      "corp_guard",
+      "corp_guard",
+      "executive_drone",
+      "credit_audit",
+      "credit_audit",
+      "asset_freeze",
+      "premium_armor",
+      "street_medic",
+      "security_bot",
+      "data_broker",
+      "designer_jacket",
+      "sky_estate",
+      "luxury_cruise",
+    ],
+  };
+
+  deckCounts = {};
+  recipes[selectedOperator].forEach((id) => {
+    deckCounts[id] = (deckCounts[id] || 0) + 1;
+  });
+  saveDeck();
+  renderBuilder();
+}
+
+function removeInvalidDeckCards() {
+  Object.keys(deckCounts).forEach((id) => {
+    const card = CARD_BY_ID[id];
+    if (!card || (card.faction !== "neutral" && card.faction !== selectedOperator)) {
+      delete deckCounts[id];
+    }
+  });
+}
+
+function getDeckTotal() {
+  return Object.values(deckCounts).reduce((sum, count) => sum + count, 0);
+}
+
+function getDeckLuxuryTotal() {
+  return Object.entries(deckCounts).reduce((sum, [id, count]) => {
+    return sum + (CARD_BY_ID[id]?.type === "luxury" ? count : 0);
+  }, 0);
+}
+
+function getMaxCopies(card) {
+  return card.type === "luxury" ? 1 : 2;
+}
+
+function getArtStyle(card) {
+  const art = Number.isFinite(card?.art) ? card.art : 0;
+  const col = art % ATLAS_COLUMNS;
+  const row = Math.floor(art / ATLAS_COLUMNS);
+  return `--art-x:${col * 20}%;--art-y:${row * 20}%;`;
+}
+
+function startGame() {
+  if (getDeckTotal() !== DECK_SIZE) return;
+  unitSeq = 1;
+  luxurySeq = 1;
+  const playerDeck = expandDeck(deckCounts);
+  const aiDeck = buildAiDeck();
+
+  game = {
+    turn: "player",
+    awaitMulligan: true,
+    gameOver: false,
+    pending: null,
+    selectedAttacker: null,
+    log: [],
+    player: createPlayer("你", "player", selectedOperator, playerDeck),
+    ai: createPlayer("對手", "ai", "corp", aiDeck),
+  };
+
+  drawCards(game.player, OPENING_HAND, false);
+  drawCards(game.ai, OPENING_HAND, false);
+  game.player.maxEnergy = 1;
+  game.player.energy = 1;
+  addLog(`你選擇了 ${OPERATORS[selectedOperator].name}。`);
+  addLog("起手完成，可以保留或重抽一次。");
+  showView("game");
+  renderGame();
+}
+
+function expandDeck(counts) {
+  const ids = [];
+  Object.entries(counts).forEach(([id, count]) => {
+    for (let i = 0; i < count; i += 1) ids.push(id);
+  });
+  return shuffle(ids);
+}
+
+function buildAiDeck() {
+  return shuffle([
+    "security_intern",
+    "security_intern",
+    "corp_guard",
+    "corp_guard",
+    "executive_drone",
+    "credit_audit",
+    "credit_audit",
+    "asset_freeze",
+    "premium_armor",
+    "street_medic",
+    "security_bot",
+    "emp_pulse",
+    "data_broker",
+    "sky_estate",
+    "luxury_cruise",
+  ]);
+}
+
+function createPlayer(name, side, operatorId, deck) {
+  return {
+    name,
+    side,
+    operatorId,
+    life: STARTING_LIFE,
+    shield: 0,
+    deck,
+    hand: [],
+    board: [],
+    luxuries: [],
+    discard: [],
+    maxEnergy: 0,
+    energy: 0,
+    nextDiscount: 0,
+    skillUsed: false,
+    flags: createTurnFlags(),
+  };
+}
+
+function createTurnFlags() {
+  return {
+    firstUnitPlayed: false,
+    firstProgramPlayed: false,
+    playedLuxuryThisTurn: false,
+    jacketUsed: false,
+  };
+}
+
+function renderGame() {
+  if (!game) return;
+  renderHero(elements.playerHero, game.player);
+  renderHero(elements.aiHero, game.ai);
+  renderBoard(elements.playerBoard, game.player);
+  renderBoard(elements.aiBoard, game.ai);
+  renderOperatorLuxuries(elements.playerLuxuries, game.player);
+  renderOperatorLuxuries(elements.aiLuxuries, game.ai);
+  renderHand();
+  renderTurnBar();
+  renderActionPanel();
+  renderLog();
+  bindGameTargets();
+}
+
+function renderHero(container, player) {
+  const operator = OPERATORS[player.operatorId];
+  container.innerHTML = `
+    <h2>${operator.name}</h2>
+    <div class="hero-stats">
+      <div class="hero-stat"><span>生命</span><strong>${player.life}</strong></div>
+      <div class="hero-stat"><span>護盾</span><strong>${player.shield}</strong></div>
+      <div class="hero-stat"><span>能量</span><strong>${player.energy} / ${player.maxEnergy}</strong></div>
+      <div class="hero-stat"><span>牌庫</span><strong>${player.deck.length}</strong></div>
+    </div>
+  `;
+  container.classList.toggle("targetable", isTargetNodeLegal({ kind: "hero", owner: player.side }));
+}
+
+function renderBoard(container, player) {
+  const slots = [...player.board];
+  while (slots.length < MAX_BOARD) slots.push(null);
+  container.innerHTML = slots
+    .map((unit) => (unit ? renderUnit(unit, player) : `<div class="empty-slot">空位</div>`))
+    .join("");
+}
+
+function renderUnit(unit, player) {
+  const card = CARD_BY_ID[unit.cardId] || { art: 35 };
+  const tags = [];
+  if (unit.guard) tags.push("守衛");
+  if (unit.charge) tags.push("速攻");
+  if (unit.frozenTurns > 0) tags.push("凍結");
+  const selected = game?.selectedAttacker === unit.uid;
+  const targetable = isTargetNodeLegal({ kind: "unit", owner: player.side, uid: unit.uid });
+  const luxuryCard = unit.luxury ? CARD_BY_ID[unit.luxury.cardId] : null;
+  const canCash = player.side === "player" && canPlayerAct();
+
+  return `
+    <div class="unit-card target-node ${unit.canAttack && player.side === "player" ? "can-attack" : ""} ${selected ? "selected" : ""} ${targetable ? "targetable" : ""}"
+      data-target-kind="unit"
+      data-owner="${player.side}"
+      data-uid="${unit.uid}"
+      data-type="unit"
+      style="${getArtStyle(card)}">
+      <div class="unit-art" aria-hidden="true"></div>
+      <div class="unit-name">${unit.name}</div>
+      <div class="unit-tags">${tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+      ${luxuryCard ? renderAttachedLuxury(unit.luxury, luxuryCard, canCash) : ""}
+      <div class="unit-stats">
+        <span class="stat-badge">${unit.attack}</span>
+        <span class="stat-badge danger">${unit.health}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderAttachedLuxury(attachment, card, canCash) {
+  return `
+    <div class="attached-luxury">
+      <span>裝備：${card.name}</span>
+      ${canCash ? `<button class="cash-button" data-cash-luxury="${attachment.uid}">變現</button>` : ""}
+    </div>
+  `;
+}
+
+function renderOperatorLuxuries(container, player) {
+  const slots = [...player.luxuries];
+  while (slots.length < MAX_OPERATOR_LUXURIES) slots.push(null);
+  container.innerHTML = slots
+    .map((luxury) => {
+      if (!luxury) return `<div class="empty-slot">角色裝備空位</div>`;
+      const card = CARD_BY_ID[luxury.cardId];
+      const canCash = player.side === "player" && canPlayerAct();
+      return `
+        <div class="luxury-card" data-type="luxury" style="${getArtStyle(card)}">
+          <div class="luxury-thumb" aria-hidden="true"></div>
+          <div class="luxury-copy">
+            <strong>${card.name}</strong>
+            <p>${card.cashText}</p>
+          </div>
+          ${canCash ? `<button class="cash-button" data-cash-luxury="${luxury.uid}">變現</button>` : ""}
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function renderHand() {
+  elements.aiHandCount.textContent = game.ai.hand.length;
+  elements.playerHand.innerHTML =
+    game.player.hand.length === 0
+      ? `<div class="empty-slot">手牌已空</div>`
+      : game.player.hand.map((id, index) => renderHandCard(id, index)).join("");
+
+  elements.playerHand.querySelectorAll("[data-hand-index]").forEach((button) => {
+    button.addEventListener("click", () => playCardFromHand(Number(button.dataset.handIndex)));
+  });
+}
+
+function renderHandCard(cardId, index) {
+  const card = CARD_BY_ID[cardId];
+  const cost = getPlayableCost(card, game.player);
+  const playable = canPlayCard(game.player, card);
+  return `
+    <button class="hand-card ${playable ? "playable" : ""}" data-hand-index="${index}" data-type="${card.type}">
+      <div class="card-topline">
+        <span class="cost-badge">${cost}</span>
+        <span class="type-chip">${CARD_TYPES[card.type]}</span>
+      </div>
+      <h3>${card.name}</h3>
+      <div class="card-art" style="${getArtStyle(card)}" aria-hidden="true"></div>
+      <p class="card-text">${card.text}</p>
+      <div class="card-footer">${renderCardStats(card)}</div>
+    </button>
+  `;
+}
+
+function renderTurnBar() {
+  const playerOperator = OPERATORS[game.player.operatorId];
+  elements.heroSkillBtn.textContent = `${playerOperator.skillName} · ${playerOperator.skillCost}`;
+  elements.heroSkillBtn.disabled =
+    !canPlayerAct() ||
+    game.player.skillUsed ||
+    game.player.energy < playerOperator.skillCost;
+  elements.endTurnBtn.disabled = !canPlayerAct();
+
+  if (game.gameOver) {
+    elements.turnStatus.textContent = game.player.life > 0 ? "你贏了" : "你輸了";
+  } else if (game.awaitMulligan) {
+    elements.turnStatus.textContent = "起手選擇";
+  } else if (game.pending) {
+    elements.turnStatus.textContent = "選擇裝備或效果目標";
+  } else if (game.selectedAttacker) {
+    elements.turnStatus.textContent = "選擇攻擊目標";
+  } else {
+    elements.turnStatus.textContent = game.turn === "player" ? "你的回合" : "對手回合";
+  }
+}
+
+function renderActionPanel() {
+  if (!game) {
+    elements.actionPanel.innerHTML = `<div class="notice">先完成配牌再開始對戰。</div>`;
+    return;
+  }
+
+  if (game.gameOver) {
+    elements.actionPanel.innerHTML = `
+      <div class="notice">${game.player.life > 0 ? "勝利" : "敗北"}。這局結束了。</div>
+      <button class="primary-button" id="rematchBtn">再打一場</button>
+      <button class="ghost-button" id="backToBuilderBtn">回配牌</button>
+    `;
+    document.querySelector("#rematchBtn").addEventListener("click", startGame);
+    document.querySelector("#backToBuilderBtn").addEventListener("click", () => showView("builder"));
+    return;
+  }
+
+  if (game.awaitMulligan) {
+    elements.actionPanel.innerHTML = `
+      <div class="notice">起手 3 張，可重抽一次。</div>
+      <div class="button-row">
+        <button class="primary-button" id="keepHandBtn">保留</button>
+        <button class="ghost-button" id="mulliganBtn">重抽</button>
+      </div>
+    `;
+    document.querySelector("#keepHandBtn").addEventListener("click", keepOpeningHand);
+    document.querySelector("#mulliganBtn").addEventListener("click", mulliganHand);
+    return;
+  }
+
+  if (game.pending) {
+    elements.actionPanel.innerHTML = `
+      <div class="notice">正在使用「${CARD_BY_ID[game.pending.cardId].name}」，請點選合法目標。</div>
+      <button class="ghost-button" id="cancelPendingBtn">取消</button>
+    `;
+    document.querySelector("#cancelPendingBtn").addEventListener("click", () => {
+      game.pending = null;
+      renderGame();
+    });
+    return;
+  }
+
+  if (game.selectedAttacker) {
+    const unit = findUnitByUid(game.selectedAttacker);
+    elements.actionPanel.innerHTML = `
+      <div class="notice">「${unit?.name || "單位"}」準備攻擊。</div>
+      <button class="ghost-button" id="cancelAttackBtn">取消</button>
+    `;
+    document.querySelector("#cancelAttackBtn").addEventListener("click", () => {
+      game.selectedAttacker = null;
+      renderGame();
+    });
+    return;
+  }
+
+  elements.actionPanel.innerHTML = `
+    <div class="notice">
+      奢侈品現在是裝備牌：可放在操作者或友方單位上，之後也能變現。
+    </div>
+  `;
+}
+
+function renderLog() {
+  elements.gameLog.innerHTML = game.log.map((line) => `<div class="log-line">${line}</div>`).join("");
+}
+
+function bindGameTargets() {
+  document.querySelectorAll("[data-cash-luxury]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      cashLuxury(button.dataset.cashLuxury);
+    });
+  });
+
+  document.querySelectorAll(".target-node").forEach((node) => {
+    node.addEventListener("click", () => {
+      const target = {
+        kind: node.dataset.targetKind,
+        owner: node.dataset.owner,
+        uid: node.dataset.uid,
+      };
+      handleTargetClick(target);
+    });
+  });
+}
+
+function keepOpeningHand() {
+  game.awaitMulligan = false;
+  addLog("你保留了起手。");
+  renderGame();
+}
+
+function mulliganHand() {
+  game.player.deck.push(...game.player.hand);
+  game.player.hand = [];
+  game.player.deck = shuffle(game.player.deck);
+  drawCards(game.player, OPENING_HAND, false);
+  game.awaitMulligan = false;
+  addLog("你重抽了起手。");
+  renderGame();
+}
+
+function playCardFromHand(handIndex) {
+  if (!canPlayerAct() || game.pending || game.selectedAttacker) return;
+  const cardId = game.player.hand[handIndex];
+  const card = CARD_BY_ID[cardId];
+  if (!canPlayCard(game.player, card)) return;
+
+  if (needsTarget(card)) {
+    const targets = getLegalTargetsForCard(card, game.player, game.ai);
+    if (targets.length === 0) return;
+    game.pending = { type: "playCard", handIndex, cardId };
+    renderGame();
+    return;
+  }
+
+  resolvePlayCard(game.player, game.ai, handIndex, null);
+}
+
+function handleTargetClick(target) {
+  if (!canPlayerAct()) return;
+
+  if (game.pending) {
+    const card = CARD_BY_ID[game.pending.cardId];
+    if (!isLegalCardTarget(card, game.player, game.ai, target)) return;
+    const handIndex = game.pending.handIndex;
+    game.pending = null;
+    resolvePlayCard(game.player, game.ai, handIndex, target);
+    return;
+  }
+
+  if (game.selectedAttacker) {
+    if (!isLegalAttackTarget(game.player, game.ai, target)) return;
+    resolveAttack(game.player, game.ai, game.selectedAttacker, target);
+    return;
+  }
+
+  if (target.owner === "player" && target.kind === "unit") {
+    const unit = game.player.board.find((item) => item.uid === target.uid);
+    if (!unit || !unit.canAttack || unit.attack <= 0) return;
+    game.selectedAttacker = unit.uid;
+    renderGame();
+  }
+}
+
+function resolvePlayCard(owner, opponent, handIndex, target) {
+  const cardId = owner.hand[handIndex];
+  const card = CARD_BY_ID[cardId];
+  if (!card || !canPlayCard(owner, card)) return;
+
+  const cost = getPlayableCost(card, owner);
+  owner.energy -= cost;
+  consumeDiscount(owner);
+  owner.hand.splice(handIndex, 1);
+  owner.discard.push(card.id);
+
+  if (card.type === "unit") {
+    summonUnit(owner, opponent, card);
+  } else if (card.type === "luxury") {
+    attachLuxury(owner, card, target);
+  } else {
+    if (card.type === "program") owner.flags.firstProgramPlayed = true;
+    applyCardEffect(card, owner, opponent, target);
+    addLog(`${owner.name}使用「${card.name}」。`);
+  }
+
+  cleanupDeadUnits();
+  checkGameOver();
+  renderGame();
+}
+
+function summonUnit(owner, opponent, card) {
+  if (owner.board.length >= MAX_BOARD) return;
+  const unit = {
+    uid: `u${unitSeq++}`,
+    owner: owner.side,
+    cardId: card.id,
+    name: card.name,
+    attack: card.attack,
+    health: card.health,
+    maxHealth: card.health,
+    guard: Boolean(card.guard),
+    baseGuard: Boolean(card.guard),
+    charge: Boolean(card.charge),
+    canAttack: Boolean(card.charge),
+    frozenTurns: 0,
+    luxury: null,
+  };
+
+  if (hasOperatorLuxury(owner, "cyber_car") && !owner.flags.firstUnitPlayed) {
+    unit.canAttack = true;
+    unit.charge = true;
+    addLog("賽博超跑讓第一個單位立刻上路。");
+  }
+
+  if (hasOperatorLuxury(owner, "limited_sneakers") && card.cost <= 1) {
+    unit.attack += 1;
+    addLog("限量球鞋讓低費單位攻擊 +1。");
+  }
+
+  owner.flags.firstUnitPlayed = true;
+  owner.board.push(unit);
+  addLog(`${owner.name}召喚「${card.name}」。`);
+  applyCardEffect(card, owner, opponent, null);
+}
+
+function attachLuxury(owner, card, target) {
+  if (!target) return;
+  const attachment = {
+    uid: `l${luxurySeq++}`,
+    cardId: card.id,
+    host: target.kind,
+    unitUid: target.kind === "unit" ? target.uid : null,
+    bonus: null,
+  };
+
+  if (target.kind === "hero") {
+    owner.luxuries.push(attachment);
+    addLog(`${owner.name}把「${card.name}」裝備到操作者。`);
+  } else {
+    const unit = owner.board.find((item) => item.uid === target.uid);
+    if (!unit || unit.luxury) return;
+    attachment.bonus = applyLuxuryUnitBonus(unit, card.id);
+    unit.luxury = attachment;
+    addLog(`${owner.name}把「${card.name}」裝備到「${unit.name}」。`);
+  }
+
+  owner.flags.playedLuxuryThisTurn = true;
+}
+
+function applyLuxuryUnitBonus(unit, cardId) {
+  const bonus = { attack: 0, health: 0, grantedGuard: false };
+  switch (cardId) {
+    case "cyber_car":
+    case "limited_sneakers":
+    case "private_jet":
+      bonus.attack = 1;
+      readyUnit(unit);
+      break;
+    case "limited_watch":
+      bonus.health = 1;
+      break;
+    case "black_card_bag":
+      bonus.attack = 1;
+      bonus.health = 1;
+      break;
+    case "designer_jacket":
+      bonus.health = 3;
+      bonus.grantedGuard = !unit.guard;
+      unit.guard = true;
+      break;
+    case "sky_estate":
+    case "luxury_cruise":
+      bonus.health = 2;
+      bonus.grantedGuard = !unit.guard;
+      unit.guard = true;
+      break;
+    default:
+      break;
+  }
+  unit.attack += bonus.attack;
+  unit.health += bonus.health;
+  unit.maxHealth += bonus.health;
+  return bonus;
+}
+
+function removeLuxuryUnitBonus(unit, attachment) {
+  if (!unit || !attachment?.bonus) return;
+  const bonus = attachment.bonus;
+  unit.attack = Math.max(0, unit.attack - bonus.attack);
+  unit.maxHealth = Math.max(1, unit.maxHealth - bonus.health);
+  unit.health = Math.max(1, Math.min(unit.health - bonus.health, unit.maxHealth));
+  if (bonus.grantedGuard) unit.guard = false;
+}
+
+function applyCardEffect(card, owner, opponent, target) {
+  const targetUnit = target?.kind === "unit" ? getUnitFromTarget(target) : null;
+
+  switch (card.effect) {
+    case "draw_if_luxury":
+      if (countAttachedLuxuries(owner) > 0) drawCards(owner, 1);
+      break;
+    case "heal_hero_2":
+      healHero(owner, 2);
+      break;
+    case "deal_2":
+      dealDamageToTarget(target, 2, owner);
+      break;
+    case "draw_2":
+      drawCards(owner, 2);
+      break;
+    case "buff_1_1_ready":
+      buffUnit(targetUnit, 1, 1);
+      readyUnit(targetUnit);
+      break;
+    case "buff_0_3_guard":
+      buffUnit(targetUnit, 0, 3);
+      if (targetUnit) targetUnit.guard = true;
+      break;
+    case "deal_1_luxury_2":
+      dealDamageToTarget(target, countAttachedLuxuries(owner) > 0 ? 2 : 1, owner);
+      break;
+    case "buff_attack_2_ready":
+      buffUnit(targetUnit, 2, 0);
+      readyUnit(targetUnit);
+      break;
+    case "buff_2_0":
+      buffUnit(targetUnit, 2, 0);
+      break;
+    case "ping_enemy_hero":
+      damageHero(opponent, 1, owner);
+      break;
+    case "draw_1":
+      drawCards(owner, 1);
+      break;
+    case "deal_2_draw_1":
+      dealDamageToTarget(target, 2, owner);
+      drawCards(owner, 1);
+      break;
+    case "draw_1_break_shield":
+      drawCards(owner, 1);
+      opponent.shield = Math.max(0, opponent.shield - 1);
+      break;
+    case "enemy_units_minus_1_attack":
+      opponent.board.forEach((unit) => {
+        unit.attack = Math.max(0, unit.attack - 1);
+      });
+      break;
+    case "gain_shield_1":
+      gainShield(owner, 1);
+      break;
+    case "deal_2_gain_shield_1":
+      dealDamageToTarget(target, 2, owner);
+      gainShield(owner, 1);
+      break;
+    case "deal_1_freeze":
+      if (targetUnit) {
+        damageUnit(targetUnit, 1);
+        targetUnit.frozenTurns = Math.max(targetUnit.frozenTurns, 1);
+        targetUnit.canAttack = false;
+      }
+      break;
+    case "buff_1_2_guard":
+      buffUnit(targetUnit, 1, 2);
+      if (targetUnit) targetUnit.guard = true;
+      break;
+    default:
+      break;
+  }
+}
+
+function cashLuxury(uid) {
+  if (!canPlayerAct()) return;
+  const owner = game.player;
+  const opponent = game.ai;
+  const found = findLuxuryAttachment(owner, uid);
+  if (!found) return;
+  const card = CARD_BY_ID[found.attachment.cardId];
+  detachLuxury(owner, found);
+  applyLuxuryCashEffect(owner, opponent, card.id);
+  addLog(`${owner.name}變現「${card.name}」。`);
+  cleanupDeadUnits();
+  checkGameOver();
+  renderGame();
+}
+
+function findLuxuryAttachment(owner, uid) {
+  const operatorIndex = owner.luxuries.findIndex((item) => item.uid === uid);
+  if (operatorIndex >= 0) {
+    return { location: "operator", index: operatorIndex, attachment: owner.luxuries[operatorIndex] };
+  }
+  for (const unit of owner.board) {
+    if (unit.luxury?.uid === uid) {
+      return { location: "unit", unit, attachment: unit.luxury };
+    }
+  }
+  return null;
+}
+
+function detachLuxury(owner, found) {
+  if (found.location === "operator") {
+    owner.luxuries.splice(found.index, 1);
+    return;
+  }
+  removeLuxuryUnitBonus(found.unit, found.attachment);
+  found.unit.luxury = null;
+}
+
+function applyLuxuryCashEffect(owner, opponent, cardId) {
+  switch (cardId) {
+    case "cyber_car":
+      owner.energy += 2;
+      break;
+    case "limited_watch":
+      owner.nextDiscount += 2;
+      break;
+    case "black_card_bag":
+      drawCards(owner, 2);
+      break;
+    case "limited_sneakers":
+    case "private_jet":
+      owner.board.forEach((unit) => readyUnit(unit));
+      break;
+    case "designer_jacket":
+      gainShield(owner, 3);
+      break;
+    case "sky_estate":
+      healHero(owner, 4);
+      break;
+    case "luxury_cruise":
+      summonToken(owner, "郵輪保全", 1, 2, true);
+      summonToken(owner, "郵輪保全", 1, 2, true);
+      break;
+    default:
+      drawCards(owner, 1);
+      break;
+  }
+}
+
+function useHeroSkill() {
+  if (!canPlayerAct()) return;
+  const player = game.player;
+  const opponent = game.ai;
+  const operator = OPERATORS[player.operatorId];
+  if (player.skillUsed || player.energy < operator.skillCost) return;
+  player.energy -= operator.skillCost;
+  player.skillUsed = true;
+
+  if (player.operatorId === "merc") {
+    damageHero(opponent, player.flags.playedLuxuryThisTurn ? 2 : 1, player);
+  } else if (player.operatorId === "hacker") {
+    drawCards(player, 1);
+  } else if (player.operatorId === "corp") {
+    gainShield(player, 2);
+  }
+
+  addLog(`${player.name}啟動「${operator.skillName}」。`);
+  checkGameOver();
+  renderGame();
+}
+
+function endPlayerTurn() {
+  if (!canPlayerAct()) return;
+  game.pending = null;
+  game.selectedAttacker = null;
+  processEndOfTurn(game.player, game.ai);
+  if (checkGameOver()) {
+    renderGame();
+    return;
+  }
+  game.turn = "ai";
+  renderGame();
+  window.setTimeout(runAiTurn, 550);
+}
+
+function runAiTurn() {
+  if (!game || game.gameOver) return;
+  startTurn(game.ai, game.player);
+
+  let guard = 0;
+  while (guard < 12) {
+    guard += 1;
+    const playableIndex = chooseAiPlayableCard();
+    if (playableIndex < 0) break;
+    playAiCard(playableIndex);
+    if (game.gameOver) break;
+  }
+
+  if (!game.gameOver) useAiHeroSkill();
+  if (!game.gameOver) aiAttack();
+  processEndOfTurn(game.ai, game.player);
+
+  if (!checkGameOver()) {
+    startTurn(game.player, game.ai);
+    addLog("輪到你了。");
+  }
+  renderGame();
+}
+
+function chooseAiPlayableCard() {
+  const playable = game.ai.hand
+    .map((id, index) => ({ card: CARD_BY_ID[id], index }))
+    .filter(({ card }) => canPlayCard(game.ai, card));
+
+  playable.sort((a, b) => {
+    const scoreA = getAiCardScore(a.card);
+    const scoreB = getAiCardScore(b.card);
+    return scoreB - scoreA || b.card.cost - a.card.cost;
+  });
+  return playable[0]?.index ?? -1;
+}
+
+function getAiCardScore(card) {
+  if (card.type === "unit") return 10 + card.cost;
+  if (card.type === "luxury") return 8 + card.cost;
+  if (card.type === "program") return 6 + card.cost;
+  return 5 + card.cost;
+}
+
+function playAiCard(handIndex) {
+  const owner = game.ai;
+  const opponent = game.player;
+  const card = CARD_BY_ID[owner.hand[handIndex]];
+  const target = chooseAiTarget(card);
+  if (needsTarget(card) && !target) return;
+  resolvePlayCard(owner, opponent, handIndex, target);
+}
+
+function chooseAiTarget(card) {
+  if (card.type === "luxury") {
+    const units = game.ai.board.filter((unit) => !unit.luxury);
+    const prefersUnit = ["limited_sneakers", "designer_jacket", "luxury_cruise", "sky_estate"].includes(card.id);
+    if (prefersUnit && units.length > 0) return { kind: "unit", owner: "ai", uid: units[0].uid };
+    if (game.ai.luxuries.length < MAX_OPERATOR_LUXURIES) return { kind: "hero", owner: "ai" };
+    if (units.length > 0) return { kind: "unit", owner: "ai", uid: units[0].uid };
+    return null;
+  }
+
+  if (!card.target) return null;
+  if (card.target === "friendlyUnit") {
+    const target = game.ai.board.slice().sort((a, b) => b.attack + b.health - (a.attack + a.health))[0];
+    return target ? { kind: "unit", owner: "ai", uid: target.uid } : null;
+  }
+
+  if (card.target === "enemyUnit") {
+    const target = game.player.board.slice().sort((a, b) => b.attack - a.attack || a.health - b.health)[0];
+    return target ? { kind: "unit", owner: "player", uid: target.uid } : null;
+  }
+
+  if (card.target === "enemy") {
+    const guard = game.player.board.find((unit) => unit.guard && unit.health <= 2);
+    if (guard) return { kind: "unit", owner: "player", uid: guard.uid };
+    if (game.player.life <= 4) return { kind: "hero", owner: "player" };
+    const target = game.player.board.slice().sort((a, b) => b.attack - a.attack || a.health - b.health)[0];
+    return target ? { kind: "unit", owner: "player", uid: target.uid } : { kind: "hero", owner: "player" };
+  }
+
+  return null;
+}
+
+function useAiHeroSkill() {
+  const ai = game.ai;
+  const operator = OPERATORS[ai.operatorId];
+  if (ai.energy < operator.skillCost || ai.skillUsed) return;
+  ai.energy -= operator.skillCost;
+  ai.skillUsed = true;
+  gainShield(ai, 2);
+  addLog("對手啟動「信用護盾」。");
+}
+
+function aiAttack() {
+  const ai = game.ai;
+  const player = game.player;
+  ai.board.forEach((unit) => {
+    if (game.gameOver || !unit.canAttack || unit.attack <= 0) return;
+    const guards = player.board.filter((target) => target.guard);
+    const targetUnit = guards[0] || null;
+    if (targetUnit) {
+      resolveAttack(ai, player, unit.uid, { kind: "unit", owner: "player", uid: targetUnit.uid }, false);
+    } else {
+      resolveAttack(ai, player, unit.uid, { kind: "hero", owner: "player" }, false);
+    }
+  });
+}
+
+function startTurn(player, opponent) {
+  game.turn = player.side;
+  resetPerTurnFlags();
+  player.maxEnergy = Math.min(MAX_ENERGY, player.maxEnergy + 1);
+  player.energy = player.maxEnergy;
+  player.skillUsed = false;
+  player.nextDiscount = 0;
+  player.flags.firstUnitPlayed = false;
+  player.flags.firstProgramPlayed = false;
+  player.flags.playedLuxuryThisTurn = false;
+  readyBoardForTurn(player);
+  drawCards(player, DRAW_PER_TURN);
+  processStartOfTurn(player, opponent);
+}
+
+function resetPerTurnFlags() {
+  [game.player, game.ai].forEach((player) => {
+    player.flags.jacketUsed = false;
+  });
+}
+
+function readyBoardForTurn(player) {
+  player.board.forEach((unit) => {
+    if (unit.frozenTurns > 0) {
+      unit.frozenTurns -= 1;
+      unit.canAttack = false;
+    } else {
+      unit.canAttack = true;
+    }
+  });
+}
+
+function processStartOfTurn(player, opponent) {
+  if (hasOperatorLuxury(player, "limited_watch") && player.hand.length < opponent.hand.length) {
+    drawCards(player, 1);
+    addLog(`限量名錶讓${player.name}補進 1 張牌。`);
+  }
+}
+
+function processEndOfTurn(player, opponent) {
+  if (hasOperatorLuxury(player, "sky_estate")) {
+    gainShield(player, 1);
+    addLog(`空中豪宅為${player.name}提供 1 點護盾。`);
+  }
+  if (hasOperatorLuxury(player, "luxury_cruise") && player.life < opponent.life) {
+    healHero(player, 1);
+    addLog(`星港郵輪讓${player.name}恢復 1 點生命。`);
+  }
+}
+
+function resolveAttack(owner, opponent, attackerUid, target, shouldRender = true) {
+  const attacker = owner.board.find((unit) => unit.uid === attackerUid);
+  if (!attacker || !attacker.canAttack || attacker.attack <= 0) return;
+
+  attacker.canAttack = false;
+  game.selectedAttacker = null;
+
+  if (target.kind === "hero") {
+    damageHero(opponent, attacker.attack, owner);
+    addLog(`${attacker.name}攻擊${opponent.name}。`);
+  } else {
+    const defender = opponent.board.find((unit) => unit.uid === target.uid);
+    if (!defender) return;
+    damageUnit(defender, attacker.attack);
+    damageUnit(attacker, defender.attack);
+    addLog(`${attacker.name}攻擊「${defender.name}」。`);
+  }
+
+  cleanupDeadUnits();
+  checkGameOver();
+  if (shouldRender) renderGame();
+}
+
+function canPlayCard(player, card) {
+  if (!game || game.gameOver || !card) return false;
+  if (player.side === "player" && !canPlayerAct()) return false;
+  if (player.energy < getPlayableCost(card, player)) return false;
+  if (card.type === "unit" && player.board.length >= MAX_BOARD) return false;
+  if (needsTarget(card) && getLegalTargetsForCard(card, player, getOpponent(player)).length === 0) return false;
+  return true;
+}
+
+function canPlayerAct() {
+  return Boolean(game && game.turn === "player" && !game.awaitMulligan && !game.gameOver);
+}
+
+function needsTarget(card) {
+  return card.type === "luxury" || Boolean(card.target);
+}
+
+function getPlayableCost(card, player) {
+  let cost = card.cost;
+  if (card.type === "program" && hasOperatorLuxury(player, "private_jet") && !player.flags.firstProgramPlayed) {
+    cost -= 1;
+  }
+  if (player.nextDiscount > 0) {
+    cost -= player.nextDiscount;
+  }
+  return Math.max(0, cost);
+}
+
+function consumeDiscount(player) {
+  player.nextDiscount = 0;
+}
+
+function getLegalTargetsForCard(card, owner, opponent) {
+  if (card.type === "luxury") {
+    const targets = [];
+    if (owner.luxuries.length < MAX_OPERATOR_LUXURIES && !hasOperatorLuxury(owner, card.id)) {
+      targets.push({ kind: "hero", owner: owner.side });
+    }
+    owner.board.forEach((unit) => {
+      if (!unit.luxury) targets.push({ kind: "unit", owner: owner.side, uid: unit.uid });
+    });
+    return targets;
+  }
+
+  if (card.target === "friendlyUnit") {
+    return owner.board.map((unit) => ({ kind: "unit", owner: owner.side, uid: unit.uid }));
+  }
+  if (card.target === "enemyUnit") {
+    return opponent.board.map((unit) => ({ kind: "unit", owner: opponent.side, uid: unit.uid }));
+  }
+  if (card.target === "enemy") {
+    return [
+      { kind: "hero", owner: opponent.side },
+      ...opponent.board.map((unit) => ({ kind: "unit", owner: opponent.side, uid: unit.uid })),
+    ];
+  }
+  return [];
+}
+
+function isLegalCardTarget(card, owner, opponent, target) {
+  return getLegalTargetsForCard(card, owner, opponent).some((legal) => {
+    return legal.kind === target.kind && legal.owner === target.owner && (!legal.uid || legal.uid === target.uid);
+  });
+}
+
+function isLegalAttackTarget(owner, opponent, target) {
+  if (target.owner !== opponent.side) return false;
+  const guards = opponent.board.filter((unit) => unit.guard);
+  if (guards.length > 0) {
+    return target.kind === "unit" && guards.some((unit) => unit.uid === target.uid);
+  }
+  return target.kind === "hero" || target.kind === "unit";
+}
+
+function isTargetNodeLegal(target) {
+  if (!canPlayerAct()) return false;
+  if (game.pending) {
+    const card = CARD_BY_ID[game.pending.cardId];
+    return isLegalCardTarget(card, game.player, game.ai, target);
+  }
+  if (game.selectedAttacker) return isLegalAttackTarget(game.player, game.ai, target);
+  return false;
+}
+
+function getUnitFromTarget(target) {
+  const player = getPlayerBySide(target.owner);
+  return player?.board.find((unit) => unit.uid === target.uid) || null;
+}
+
+function getPlayerBySide(side) {
+  if (!game) return null;
+  return side === "player" ? game.player : game.ai;
+}
+
+function getOpponent(player) {
+  return player.side === "player" ? game.ai : game.player;
+}
+
+function findUnitByUid(uid) {
+  return [...game.player.board, ...game.ai.board].find((unit) => unit.uid === uid) || null;
+}
+
+function hasOperatorLuxury(player, cardId) {
+  return player.luxuries.some((luxury) => luxury.cardId === cardId);
+}
+
+function countAttachedLuxuries(player) {
+  return player.luxuries.length + player.board.filter((unit) => unit.luxury).length;
+}
+
+function drawCards(player, amount, logDraw = true) {
+  for (let i = 0; i < amount; i += 1) {
+    if (player.deck.length === 0) {
+      damageHero(player, 1, null, true);
+      addLog(`${player.name}牌庫耗盡，受到 1 點傷害。`);
+      continue;
+    }
+    const card = player.deck.shift();
+    if (player.hand.length >= getHandLimit(player)) {
+      player.discard.push(card);
+      if (logDraw) addLog(`${player.name}手牌已滿，燒掉「${CARD_BY_ID[card].name}」。`);
+    } else {
+      player.hand.push(card);
+      if (logDraw && player.side === "player") addLog(`${player.name}抽到「${CARD_BY_ID[card].name}」。`);
+      if (logDraw && player.side === "ai") addLog(`${player.name}抽了 1 張牌。`);
+    }
+  }
+}
+
+function getHandLimit(player) {
+  return BASE_HAND_LIMIT + (hasOperatorLuxury(player, "black_card_bag") ? 2 : 0);
+}
+
+function dealDamageToTarget(target, amount, sourcePlayer) {
+  if (!target) return;
+  if (target.kind === "hero") {
+    damageHero(getPlayerBySide(target.owner), amount, sourcePlayer);
+  } else {
+    const unit = getUnitFromTarget(target);
+    if (unit) damageUnit(unit, amount);
+  }
+}
+
+function damageHero(player, amount, sourcePlayer = null, ignoreReduction = false) {
+  if (!player || amount <= 0) return;
+  let incoming = amount;
+  if (!ignoreReduction && hasOperatorLuxury(player, "designer_jacket") && !player.flags.jacketUsed) {
+    incoming = Math.max(0, incoming - 1);
+    player.flags.jacketUsed = true;
+    addLog("高訂戰術外套減少了 1 點傷害。");
+  }
+  const blocked = Math.min(player.shield, incoming);
+  player.shield -= blocked;
+  incoming -= blocked;
+  player.life = Math.max(0, player.life - incoming);
+  if (sourcePlayer && incoming + blocked > 0) {
+    addLog(`${sourcePlayer.name}造成 ${incoming + blocked} 點傷害。`);
+  }
+}
+
+function damageUnit(unit, amount) {
+  if (!unit || amount <= 0) return;
+  unit.health -= amount;
+}
+
+function buffUnit(unit, attack, health) {
+  if (!unit) return;
+  unit.attack += attack;
+  unit.health += health;
+  unit.maxHealth += health;
+}
+
+function readyUnit(unit) {
+  if (!unit) return;
+  unit.canAttack = true;
+  unit.frozenTurns = 0;
+}
+
+function healHero(player, amount) {
+  player.life = Math.min(STARTING_LIFE, player.life + amount);
+}
+
+function gainShield(player, amount) {
+  player.shield += amount;
+}
+
+function summonToken(player, name, attack, health, guard = false) {
+  if (player.board.length >= MAX_BOARD) return;
+  player.board.push({
+    uid: `u${unitSeq++}`,
+    owner: player.side,
+    cardId: "token",
+    name,
+    attack,
+    health,
+    maxHealth: health,
+    guard,
+    baseGuard: guard,
+    charge: false,
+    canAttack: false,
+    frozenTurns: 0,
+    luxury: null,
+  });
+}
+
+function cleanupDeadUnits() {
+  [game.player, game.ai].forEach((player) => {
+    const dead = player.board.filter((unit) => unit.health <= 0);
+    dead.forEach((unit) => {
+      if (unit.luxury) {
+        addLog(`「${CARD_BY_ID[unit.luxury.cardId].name}」隨「${unit.name}」離場。`);
+      }
+      addLog(`「${unit.name}」被摧毀。`);
+    });
+    player.board = player.board.filter((unit) => unit.health > 0);
+  });
+}
+
+function checkGameOver() {
+  if (!game) return false;
+  if (game.player.life <= 0 || game.ai.life <= 0) {
+    game.gameOver = true;
+    game.pending = null;
+    game.selectedAttacker = null;
+    addLog(game.player.life > 0 ? "你贏得了這場牌局。" : "對手贏得了這場牌局。");
+    return true;
+  }
+  return false;
+}
+
+function addLog(message) {
+  if (!game) return;
+  game.log.unshift(message);
+  game.log = game.log.slice(0, 36);
+}
+
+function shuffle(items) {
+  const array = [...items];
+  for (let i = array.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}

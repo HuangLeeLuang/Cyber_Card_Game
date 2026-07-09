@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>賽博牌局修改器</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backdrop" aria-hidden="true"></div>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">CC</span>
+          <div>
+            <h1>賽博牌局修改器</h1>
+            <p>調整規則、卡牌數值與節奏</p>
+          </div>
+        </div>
+        <nav class="view-tabs site-nav" aria-label="網站導覽">
+          <a class="tab-link" href="index.html">遊戲</a>
+          <a class="tab-link active" href="modifier.html">修改器</a>
+          <a class="tab-link" href="guide.html">攻略</a>
+        </nav>
+      </header>
+
+      <section class="page-layout">
+        <div class="section-band">
+          <h2>規則設定</h2>
+          <p>設定會儲存在這台裝置的瀏覽器裡。儲存後回到遊戲頁重新開局，就會套用新的規則。</p>
+          <div id="ruleEditor" class="rule-editor"></div>
+          <div class="button-row">
+            <button id="saveRulesBtn" class="primary-button">儲存設定</button>
+            <button id="resetModsBtn" class="ghost-button">重置全部</button>
+          </div>
+          <div id="modifierStatus" class="status-line"></div>
+        </div>
+
+        <div class="page-grid">
+          <section class="section-band">
+            <div class="modifier-toolbar">
+              <div>
+                <h2>卡牌數值</h2>
+                <p>可以調整費用、攻擊、生命，或改寫短文字。留空文字會使用原本敘述。</p>
+              </div>
+              <div class="field">
+                <label for="cardSearch">搜尋卡牌</label>
+                <input id="cardSearch" type="search" placeholder="輸入名稱、類型或陣營" />
+              </div>
+            </div>
+            <div id="cardEditorGrid" class="card-editor-grid"></div>
+          </section>
+
+          <aside class="section-band">
+            <h2>匯入 / 匯出</h2>
+            <p>把設定分享給朋友時，可以複製這段 JSON；朋友貼到匯入欄位後按儲存即可。</p>
+            <div class="field">
+              <label for="exportBox">設定 JSON</label>
+              <textarea id="exportBox" class="export-box" spellcheck="false"></textarea>
+            </div>
+            <div class="button-row">
+              <button id="exportBtn" class="primary-button">產生匯出</button>
+              <button id="importBtn" class="ghost-button">匯入設定</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+    <script src="script.js"></script>
+    <script src="modifier.js"></script>
+  </body>
+</html>
