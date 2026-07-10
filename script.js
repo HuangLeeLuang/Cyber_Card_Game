@@ -1139,7 +1139,846 @@ CARDS.push(
     text: "裝備單位：+0/+2 並獲得守衛。裝備操作者：落後生命時回合結束回復 1。變現：召喚一個 2/2 守衛並抽 1 張牌。",
     cashText: "召喚一個 2/2 守衛並抽 1 張牌。",
   },
+  {
+    id: "skyline_patrol",
+    name: "????",
+    type: "unit",
+    faction: "neutral",
+    cost: 1,
+    attack: 1,
+    health: 2,
+    atlas: 4,
+    art: 0,
+    text: "??????????????? 1 ???",
+    effect: "draw_if_luxury",
+  },
+  {
+    id: "neon_food_runner",
+    name: "?????",
+    type: "unit",
+    faction: "neutral",
+    cost: 1,
+    attack: 2,
+    health: 1,
+    charge: true,
+    atlas: 4,
+    art: 1,
+    text: "???",
+  },
+  {
+    id: "archive_paramedic",
+    name: "?????",
+    type: "unit",
+    faction: "neutral",
+    cost: 2,
+    attack: 1,
+    health: 3,
+    atlas: 4,
+    art: 2,
+    text: "???????? 2 ???",
+    effect: "heal_hero_2",
+  },
+  {
+    id: "chrome_doorman",
+    name: "????",
+    type: "unit",
+    faction: "neutral",
+    cost: 2,
+    attack: 1,
+    health: 4,
+    guard: true,
+    atlas: 4,
+    art: 3,
+    text: "???",
+  },
+  {
+    id: "drone_sommelier",
+    name: "?????",
+    type: "unit",
+    faction: "neutral",
+    cost: 3,
+    attack: 2,
+    health: 3,
+    atlas: 4,
+    art: 4,
+    text: "????? 1 ???",
+    effect: "gain_shield_1",
+  },
+  {
+    id: "transit_hacker",
+    name: "????",
+    type: "unit",
+    faction: "neutral",
+    cost: 3,
+    attack: 3,
+    health: 2,
+    atlas: 4,
+    art: 5,
+    text: "???? 1 ???",
+    effect: "draw_1",
+  },
+  {
+    id: "skybridge_guardian",
+    name: "?????",
+    type: "unit",
+    faction: "neutral",
+    cost: 4,
+    attack: 3,
+    health: 5,
+    guard: true,
+    atlas: 4,
+    art: 6,
+    text: "???????? 1 ???",
+    effect: "gain_shield_1",
+  },
+  {
+    id: "vending_mech",
+    name: "?????",
+    type: "unit",
+    faction: "neutral",
+    cost: 2,
+    attack: 2,
+    health: 2,
+    atlas: 4,
+    art: 7,
+    text: "??????????? 1 ????",
+    effect: "ping_enemy_hero",
+  },
+  {
+    id: "flash_arbitrage",
+    name: "????",
+    type: "program",
+    faction: "neutral",
+    cost: 1,
+    atlas: 4,
+    art: 8,
+    text: "????????? -1?",
+    effect: "discount_1",
+  },
+  {
+    id: "contract_scan",
+    name: "????",
+    type: "program",
+    faction: "neutral",
+    cost: 1,
+    atlas: 4,
+    art: 9,
+    text: "? 1 ???",
+    effect: "draw_1",
+  },
+  {
+    id: "pulse_invoice",
+    name: "????",
+    type: "program",
+    faction: "neutral",
+    cost: 2,
+    target: "enemy",
+    atlas: 4,
+    art: 10,
+    text: "?? 2 ?????? 1 ???",
+    effect: "deal_2_gain_shield_1",
+  },
+  {
+    id: "ghost_lane",
+    name: "????",
+    type: "program",
+    faction: "neutral",
+    cost: 2,
+    target: "enemyUnit",
+    atlas: 4,
+    art: 11,
+    text: "?? 1 ?????????",
+    effect: "deal_1_freeze",
+  },
+  {
+    id: "black_tide_market",
+    name: "????",
+    type: "program",
+    faction: "neutral",
+    cost: 3,
+    atlas: 4,
+    art: 12,
+    text: "? 2 ???",
+    effect: "draw_2",
+  },
+  {
+    id: "reflex_gloves",
+    name: "????",
+    type: "mod",
+    faction: "neutral",
+    cost: 1,
+    target: "friendlyUnit",
+    atlas: 4,
+    art: 13,
+    text: "??????? +1/+0 ????",
+    effect: "buff_1_0_ready",
+  },
+  {
+    id: "carbon_sleeve",
+    name: "????",
+    type: "mod",
+    faction: "neutral",
+    cost: 1,
+    target: "friendlyUnit",
+    atlas: 4,
+    art: 14,
+    text: "??????? +0/+2 ??????",
+    effect: "buff_0_2_guard",
+  },
+  {
+    id: "overclock_lace",
+    name: "????",
+    type: "mod",
+    faction: "neutral",
+    cost: 2,
+    target: "friendlyUnit",
+    atlas: 4,
+    art: 15,
+    text: "??????? +2/+0 ????",
+    effect: "buff_attack_2_ready",
+  },
+  {
+    id: "solar_supercar",
+    name: "????",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    atlas: 4,
+    art: 16,
+    text: "?????+1 ????????????????????????????????? 2 ???",
+    cashText: "?? 2 ???",
+  },
+  {
+    id: "chrono_boutique_watch",
+    name: "????",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    atlas: 4,
+    art: 17,
+    text: "?????+0/+1?????????????????????? 1 ??????????????? -2?",
+    cashText: "????????? -2?",
+  },
+  {
+    id: "diamond_airliner",
+    name: "????",
+    type: "luxury",
+    faction: "neutral",
+    cost: 3,
+    atlas: 4,
+    art: 18,
+    text: "?????+1 ?????????????????????? -1????? 1 ????? 1 ???",
+    cashText: "? 1 ????? 1 ???",
+  },
+  {
+    id: "marina_resort",
+    name: "?????",
+    type: "luxury",
+    faction: "neutral",
+    cost: 4,
+    atlas: 4,
+    art: 19,
+    text: "?????+0/+2 ?????????????????? 1 ???????? 4 ???",
+    cashText: "?? 4 ???",
+  },
+  {
+    id: "riot_courier",
+    name: "????",
+    type: "unit",
+    faction: "merc",
+    cost: 1,
+    attack: 2,
+    health: 1,
+    charge: true,
+    atlas: 4,
+    art: 20,
+    text: "???",
+  },
+  {
+    id: "chrome_bouncer",
+    name: "????",
+    type: "unit",
+    faction: "merc",
+    cost: 2,
+    attack: 2,
+    health: 3,
+    guard: true,
+    atlas: 4,
+    art: 21,
+    text: "???",
+  },
+  {
+    id: "railgun_valet",
+    name: "?????",
+    type: "unit",
+    faction: "merc",
+    cost: 2,
+    attack: 3,
+    health: 2,
+    atlas: 4,
+    art: 22,
+    text: "????????",
+  },
+  {
+    id: "debt_collector",
+    name: "?????",
+    type: "unit",
+    faction: "merc",
+    cost: 3,
+    attack: 3,
+    health: 3,
+    atlas: 4,
+    art: 23,
+    text: "??????????? 1 ????",
+    effect: "ping_enemy_hero",
+  },
+  {
+    id: "armored_vip",
+    name: "????",
+    type: "unit",
+    faction: "merc",
+    cost: 3,
+    attack: 2,
+    health: 5,
+    guard: true,
+    atlas: 4,
+    art: 24,
+    text: "???",
+  },
+  {
+    id: "convoy_captain",
+    name: "????",
+    type: "unit",
+    faction: "merc",
+    cost: 4,
+    attack: 4,
+    health: 4,
+    atlas: 4,
+    art: 25,
+    text: "????????????",
+    effect: "ready_all_units",
+  },
+  {
+    id: "bounty_tag",
+    name: "????",
+    type: "program",
+    faction: "merc",
+    cost: 1,
+    target: "enemy",
+    atlas: 4,
+    art: 26,
+    text: "?? 2 ????",
+    effect: "deal_2",
+  },
+  {
+    id: "barricade_contract",
+    name: "????",
+    type: "program",
+    faction: "merc",
+    cost: 2,
+    atlas: 4,
+    art: 27,
+    text: "???? 1/1 ???",
+    effect: "summon_1_1_guard",
+  },
+  {
+    id: "firebrand_offer",
+    name: "????",
+    type: "program",
+    faction: "merc",
+    cost: 3,
+    target: "enemy",
+    atlas: 4,
+    art: 28,
+    text: "?? 3 ????",
+    effect: "deal_3",
+  },
+  {
+    id: "street_takeover",
+    name: "????",
+    type: "program",
+    faction: "merc",
+    cost: 3,
+    atlas: 4,
+    art: 29,
+    text: "??????? 1 ????",
+    effect: "deal_1_all_enemies",
+  },
+  {
+    id: "shock_baton",
+    name: "????",
+    type: "mod",
+    faction: "merc",
+    cost: 1,
+    target: "friendlyUnit",
+    atlas: 4,
+    art: 30,
+    text: "??????? +2/+0?",
+    effect: "buff_2_0",
+  },
+  {
+    id: "riot_plating",
+    name: "????",
+    type: "mod",
+    faction: "merc",
+    cost: 2,
+    target: "friendlyUnit",
+    atlas: 4,
+    art: 31,
+    text: "??????? +1/+2 ??????",
+    effect: "buff_1_2_guard",
+  },
+  {
+    id: "graviton_motorcycle",
+    name: "????",
+    type: "luxury",
+    faction: "merc",
+    cost: 2,
+    atlas: 4,
+    art: 32,
+    text: "?????+1 ????????????????????????????????? 2 ???",
+    cashText: "?? 2 ???",
+  },
+  {
+    id: "obsidian_cruiser",
+    name: "????",
+    type: "luxury",
+    faction: "merc",
+    cost: 3,
+    atlas: 4,
+    art: 33,
+    text: "?????+0/+2 ??????????????????????? 1???????? 1/2 ???",
+    cashText: "???? 1/2 ???",
+  },
+  {
+    id: "packet_sprite",
+    name: "????",
+    type: "unit",
+    faction: "hacker",
+    cost: 1,
+    attack: 1,
+    health: 1,
+    atlas: 4,
+    art: 34,
+    text: "???? 1 ???",
+    effect: "draw_1",
+  },
+  {
+    id: "ghost_anchor",
+    name: "????",
+    type: "unit",
+    faction: "hacker",
+    cost: 2,
+    attack: 1,
+    health: 4,
+    guard: true,
+    atlas: 4,
+    art: 35,
+    text: "???",
+  },
+  {
+    id: "mirror_scout",
+    name: "????",
+    type: "unit",
+    faction: "hacker",
+    cost: 2,
+    attack: 2,
+    health: 2,
+    atlas: 5,
+    art: 0,
+    text: "??????????????? 1 ???",
+    effect: "draw_if_luxury",
+  },
+  {
+    id: "datastream_duelist",
+    name: "??????",
+    type: "unit",
+    faction: "hacker",
+    cost: 3,
+    attack: 3,
+    health: 2,
+    charge: true,
+    atlas: 5,
+    art: 1,
+    text: "???",
+  },
+  {
+    id: "proxy_oracle",
+    name: "????",
+    type: "unit",
+    faction: "hacker",
+    cost: 3,
+    attack: 2,
+    health: 4,
+    atlas: 5,
+    art: 2,
+    text: "???? 1 ????? 1 ???",
+    effect: "draw_1_gain_shield_1",
+  },
+  {
+    id: "firewall_bard",
+    name: "??????",
+    type: "unit",
+    faction: "hacker",
+    cost: 4,
+    attack: 3,
+    health: 5,
+    atlas: 5,
+    art: 3,
+    text: "????????? -1 ???",
+    effect: "enemy_units_minus_1_attack",
+  },
+  {
+    id: "zero_day_ping",
+    name: "????",
+    type: "program",
+    faction: "hacker",
+    cost: 1,
+    target: "enemy",
+    atlas: 5,
+    art: 4,
+    text: "?? 2 ????",
+    effect: "deal_2",
+  },
+  {
+    id: "recursive_map",
+    name: "????",
+    type: "program",
+    faction: "hacker",
+    cost: 2,
+    atlas: 5,
+    art: 5,
+    text: "? 2 ???",
+    effect: "draw_2",
+  },
+  {
+    id: "black_ice_rain",
+    name: "???",
+    type: "program",
+    faction: "hacker",
+    cost: 3,
+    atlas: 5,
+    art: 6,
+    text: "???????? 1 ????",
+    effect: "enemy_units_take_1",
+  },
+  {
+    id: "memory_heist",
+    name: "????",
+    type: "program",
+    faction: "hacker",
+    cost: 2,
+    atlas: 5,
+    art: 7,
+    text: "? 1 ??????? 1 ???",
+    effect: "draw_1_break_shield",
+  },
+  {
+    id: "quantum_mirror_skin",
+    name: "????",
+    type: "mod",
+    faction: "hacker",
+    cost: 1,
+    target: "friendlyUnit",
+    atlas: 5,
+    art: 8,
+    text: "??????? +1/+1 ????",
+    effect: "buff_1_1_ready",
+  },
+  {
+    id: "rootkit_spurs",
+    name: "????",
+    type: "mod",
+    faction: "hacker",
+    cost: 2,
+    target: "friendlyUnit",
+    atlas: 5,
+    art: 9,
+    text: "??????? +1/+0 ????",
+    effect: "buff_1_0_ready",
+  },
+  {
+    id: "quantum_runway_sneakers",
+    name: "??????",
+    type: "luxury",
+    faction: "hacker",
+    cost: 2,
+    atlas: 5,
+    art: 10,
+    text: "?????+1 ???????????????? 1 ????? +1 ???????????????",
+    cashText: "?????????",
+  },
+  {
+    id: "stealth_data_bag",
+    name: "?????",
+    type: "luxury",
+    faction: "hacker",
+    cost: 2,
+    atlas: 5,
+    art: 11,
+    text: "?????+1/+1??????????? +1????? 2 ???",
+    cashText: "? 2 ???",
+  },
+  {
+    id: "lobby_warden",
+    name: "????",
+    type: "unit",
+    faction: "corp",
+    cost: 1,
+    attack: 1,
+    health: 3,
+    guard: true,
+    atlas: 5,
+    art: 12,
+    text: "???",
+  },
+  {
+    id: "dividend_sentinel",
+    name: "????",
+    type: "unit",
+    faction: "corp",
+    cost: 2,
+    attack: 2,
+    health: 2,
+    atlas: 5,
+    art: 13,
+    text: "????? 1 ???",
+    effect: "gain_shield_1",
+  },
+  {
+    id: "boardroom_mediator",
+    name: "??????",
+    type: "unit",
+    faction: "corp",
+    cost: 3,
+    attack: 2,
+    health: 5,
+    guard: true,
+    atlas: 5,
+    art: 14,
+    text: "??????????? 2 ???",
+    effect: "heal_hero_2",
+  },
+  {
+    id: "merger_titan",
+    name: "????",
+    type: "unit",
+    faction: "corp",
+    cost: 5,
+    attack: 5,
+    health: 5,
+    atlas: 5,
+    art: 15,
+    text: "????? 2 ???",
+    effect: "gain_shield_2",
+  },
+  {
+    id: "audit_wave",
+    name: "????",
+    type: "program",
+    faction: "corp",
+    cost: 2,
+    target: "enemyUnit",
+    atlas: 5,
+    art: 16,
+    text: "?? 1 ?????????",
+    effect: "deal_1_freeze",
+  },
+  {
+    id: "golden_parachute",
+    name: "?????",
+    type: "program",
+    faction: "corp",
+    cost: 3,
+    atlas: 5,
+    art: 17,
+    text: "?? 3 ???",
+    effect: "heal_3",
+  },
+  {
+    id: "monopoly_clause",
+    name: "????",
+    type: "program",
+    faction: "corp",
+    cost: 3,
+    atlas: 5,
+    art: 18,
+    text: "?????? -1 ???",
+    effect: "enemy_units_minus_1_attack",
+  },
+  {
+    id: "executive_exosuit",
+    name: "?????",
+    type: "mod",
+    faction: "corp",
+    cost: 2,
+    target: "friendlyUnit",
+    atlas: 5,
+    art: 19,
+    text: "??????? +0/+3 ??????",
+    effect: "buff_0_3_guard",
+  },
+  {
+    id: "orbital_limo",
+    name: "????",
+    type: "luxury",
+    faction: "corp",
+    cost: 3,
+    atlas: 5,
+    art: 20,
+    text: "?????+1/+1????????????????? -1?????? 3 ???",
+    cashText: "?? 3 ???",
+  },
+  {
+    id: "sapphire_skytower",
+    name: "?????",
+    type: "luxury",
+    faction: "corp",
+    cost: 4,
+    atlas: 5,
+    art: 21,
+    text: "?????+0/+2 ?????????????????? 1 ???????? 4 ???",
+    cashText: "?? 4 ???",
+  },
+  {
+    id: "executive_airliner",
+    name: "????",
+    type: "luxury",
+    faction: "corp",
+    cost: 3,
+    atlas: 5,
+    art: 22,
+    text: "?????+1 ?????????????????????? -1????? 1 ????? 1 ???",
+    cashText: "? 1 ????? 1 ???",
+  },
+  {
+    id: "legacy_watch",
+    name: "????",
+    type: "luxury",
+    faction: "corp",
+    cost: 2,
+    atlas: 5,
+    art: 23,
+    text: "?????+0/+1?????????????????????? 1 ??????????????? -2?",
+    cashText: "????????? -2?",
+  },
 );
+
+const NEW_CARD_TEXT_FIXES = {
+  skyline_patrol: { name: "天幕巡警", text: "進場：若你有已裝備的奢侈品，抽 1 張牌。" },
+  neon_food_runner: { name: "夜市快送員", text: "快攻。" },
+  archive_paramedic: { name: "檔案醫護員", text: "進場：回復操作者 2 生命。" },
+  chrome_doorman: { name: "鉻門守衛", text: "守衛。" },
+  drone_sommelier: { name: "無人侍酒師", text: "進場：獲得 1 護盾。" },
+  transit_hacker: { name: "捷運駭客", text: "進場：抽 1 張牌。" },
+  skybridge_guardian: { name: "空橋守護者", text: "守衛。進場：獲得 1 護盾。" },
+  vending_mech: { name: "販售機機兵", text: "進場：對敵方操作者造成 1 點傷害。" },
+  flash_arbitrage: { name: "閃價套利", text: "本回合下一張牌費用 -1。" },
+  contract_scan: { name: "合約掃描", text: "抽 1 張牌。" },
+  pulse_invoice: { name: "脈衝發票", text: "造成 2 點傷害並獲得 1 護盾。" },
+  ghost_lane: { name: "幽巷封鎖", text: "造成 1 點傷害並凍結目標。" },
+  black_tide_market: { name: "黑潮市場", text: "抽 2 張牌。" },
+  reflex_gloves: { name: "反射手套", text: "使一個友方單位 +1/+0 並準備。" },
+  carbon_sleeve: { name: "碳纖護套", text: "使一個友方單位 +0/+2 並獲得守衛。" },
+  overclock_lace: { name: "超頻鞋帶", text: "使一個友方單位 +2/+0 並準備。" },
+  solar_supercar: {
+    name: "日冕超跑",
+    text: "裝備單位：+1 攻擊並準備。裝備操作者：每回合第一個打出的單位獲得快攻。變現：獲得 2 能量。",
+    cashText: "獲得 2 能量。",
+  },
+  chrono_boutique_watch: {
+    name: "時序名錶",
+    text: "裝備單位：+0/+1。裝備操作者：回合開始時，若手牌少於敵方，抽 1 張牌。變現：本回合下一張牌費用 -2。",
+    cashText: "本回合下一張牌費用 -2。",
+  },
+  diamond_airliner: {
+    name: "鑽石客機",
+    text: "裝備單位：+1 攻擊並準備。裝備操作者：每回合第一張程式費用 -1。變現：抽 1 張牌並獲得 1 能量。",
+    cashText: "抽 1 張牌並獲得 1 能量。",
+  },
+  marina_resort: {
+    name: "海港度假村",
+    text: "裝備單位：+0/+2 並獲得守衛。裝備操作者：回合結束獲得 1 護盾。變現：回復 4 生命。",
+    cashText: "回復 4 生命。",
+  },
+  riot_courier: { name: "暴動信差", text: "快攻。" },
+  chrome_bouncer: { name: "鉻拳保鑣", text: "守衛。" },
+  railgun_valet: { name: "磁軌泊車手", text: "高速的街頭單位。" },
+  debt_collector: { name: "債務收割者", text: "進場：對敵方操作者造成 1 點傷害。" },
+  armored_vip: { name: "裝甲貴賓", text: "守衛。" },
+  convoy_captain: { name: "車隊隊長", text: "進場：準備你的所有單位。" },
+  bounty_tag: { name: "賞金標記", text: "造成 2 點傷害。" },
+  barricade_contract: { name: "路障合約", text: "召喚一個 1/1 守衛。" },
+  firebrand_offer: { name: "火線報價", text: "造成 3 點傷害。" },
+  street_takeover: { name: "街區接管", text: "對所有敵人造成 1 點傷害。" },
+  shock_baton: { name: "電擊短棍", text: "使一個友方單位 +2/+0。" },
+  riot_plating: { name: "鎮暴鍍層", text: "使一個友方單位 +1/+2 並獲得守衛。" },
+  graviton_motorcycle: {
+    name: "重力機車",
+    text: "裝備單位：+1 攻擊並準備。裝備操作者：每回合第一個打出的單位獲得快攻。變現：獲得 2 能量。",
+    cashText: "獲得 2 能量。",
+  },
+  obsidian_cruiser: {
+    name: "黑曜郵輪",
+    text: "裝備單位：+0/+2 並獲得守衛。裝備操作者：落後生命時回合結束回復 1。變現：召喚兩個 1/2 守衛。",
+    cashText: "召喚兩個 1/2 守衛。",
+  },
+  packet_sprite: { name: "封包精靈", text: "進場：抽 1 張牌。" },
+  ghost_anchor: { name: "幽網錨手", text: "守衛。" },
+  mirror_scout: { name: "鏡面斥候", text: "進場：若你有已裝備的奢侈品，抽 1 張牌。" },
+  datastream_duelist: { name: "資料流決鬥者", text: "快攻。" },
+  proxy_oracle: { name: "代理先知", text: "進場：抽 1 張牌並獲得 1 護盾。" },
+  firewall_bard: { name: "防火牆吟遊者", text: "進場：敵方所有單位 -1 攻擊。" },
+  zero_day_ping: { name: "零日脈衝", text: "造成 2 點傷害。" },
+  recursive_map: { name: "遞迴地圖", text: "抽 2 張牌。" },
+  black_ice_rain: { name: "黑冰雨", text: "敵方所有單位受到 1 點傷害。" },
+  memory_heist: { name: "記憶竊案", text: "抽 1 張牌，移除敵方 1 護盾。" },
+  quantum_mirror_skin: { name: "量子鏡皮", text: "使一個友方單位 +1/+1 並準備。" },
+  rootkit_spurs: { name: "根權馬刺", text: "使一個友方單位 +1/+0 並準備。" },
+  quantum_runway_sneakers: {
+    name: "量子伸展球鞋",
+    text: "裝備單位：+1 攻擊並準備。裝備操作者：你打出的 1 費以下單位 +1 攻擊。變現：準備你的所有單位。",
+    cashText: "準備你的所有單位。",
+  },
+  stealth_data_bag: {
+    name: "匿蹤資料包",
+    text: "裝備單位：+1/+1。裝備操作者：手牌上限 +1。變現：抽 2 張牌。",
+    cashText: "抽 2 張牌。",
+  },
+  lobby_warden: { name: "大廳監督", text: "守衛。" },
+  dividend_sentinel: { name: "股利哨兵", text: "進場：獲得 1 護盾。" },
+  boardroom_mediator: { name: "董事會調停者", text: "守衛。進場：回復操作者 2 生命。" },
+  merger_titan: { name: "併購巨像", text: "進場：獲得 2 護盾。" },
+  audit_wave: { name: "審計波束", text: "造成 1 點傷害並凍結目標。" },
+  golden_parachute: { name: "黃金降落傘", text: "回復 3 生命。" },
+  monopoly_clause: { name: "壟斷條款", text: "敵方所有單位 -1 攻擊。" },
+  executive_exosuit: { name: "高管外骨骼", text: "使一個友方單位 +0/+3 並獲得守衛。" },
+  orbital_limo: {
+    name: "軌道禮車",
+    text: "裝備單位：+1/+1。裝備操作者：每回合第一次受到傷害 -1。變現：獲得 3 護盾。",
+    cashText: "獲得 3 護盾。",
+  },
+  sapphire_skytower: {
+    name: "藍寶石天塔",
+    text: "裝備單位：+0/+2 並獲得守衛。裝備操作者：回合結束獲得 1 護盾。變現：回復 4 生命。",
+    cashText: "回復 4 生命。",
+  },
+  executive_airliner: {
+    name: "董事專機",
+    text: "裝備單位：+1 攻擊並準備。裝備操作者：每回合第一張程式費用 -1。變現：抽 1 張牌並獲得 1 能量。",
+    cashText: "抽 1 張牌並獲得 1 能量。",
+  },
+  legacy_watch: {
+    name: "傳承名錶",
+    text: "裝備單位：+0/+1。裝備操作者：回合開始時，若手牌少於敵方，抽 1 張牌。變現：本回合下一張牌費用 -2。",
+    cashText: "本回合下一張牌費用 -2。",
+  },
+};
+
+CARDS.forEach((card) => {
+  const fix = NEW_CARD_TEXT_FIXES[card.id];
+  if (fix) Object.assign(card, fix);
+});
 
 const ORIGINAL_CARDS = CARDS.map((card) => ({ ...card }));
 const DEFAULT_RULES = {
@@ -1174,6 +2013,8 @@ const ART_ATLASES = {
   1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas.png)" },
   2: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-2.png)" },
   3: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-3.png)" },
+  4: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-4.png)" },
+  5: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-5.png)" },
 };
 
 let selectedOperator = "merc";
@@ -2243,13 +3084,24 @@ function summonUnit(owner, opponent, card) {
     luxury: null,
   };
 
-  if ((hasOperatorLuxury(owner, "cyber_car") || hasOperatorLuxury(owner, "aurora_hypercar")) && !owner.flags.firstUnitPlayed) {
+  if (
+    (hasOperatorLuxury(owner, "cyber_car") ||
+      hasOperatorLuxury(owner, "aurora_hypercar") ||
+      hasOperatorLuxury(owner, "solar_supercar") ||
+      hasOperatorLuxury(owner, "graviton_motorcycle")) &&
+    !owner.flags.firstUnitPlayed
+  ) {
     unit.canAttack = true;
     unit.charge = true;
     addLog("賽博超跑讓第一個單位立刻上路。");
   }
 
-  if ((hasOperatorLuxury(owner, "limited_sneakers") || hasOperatorLuxury(owner, "phantom_sneakers")) && card.cost <= 1) {
+  if (
+    (hasOperatorLuxury(owner, "limited_sneakers") ||
+      hasOperatorLuxury(owner, "phantom_sneakers") ||
+      hasOperatorLuxury(owner, "quantum_runway_sneakers")) &&
+    card.cost <= 1
+  ) {
     unit.attack += 1;
     addLog("限量球鞋讓低費單位攻擊 +1。");
   }
@@ -2294,18 +3146,27 @@ function applyLuxuryUnitBonus(unit, cardId) {
     case "aurora_hypercar":
     case "phantom_sneakers":
     case "private_airship":
+    case "solar_supercar":
+    case "diamond_airliner":
+    case "graviton_motorcycle":
+    case "quantum_runway_sneakers":
+    case "executive_airliner":
       bonus.attack = 1;
       readyUnit(unit);
       break;
     case "limited_watch":
     case "sapphire_watch":
     case "crypto_timepiece":
+    case "chrono_boutique_watch":
+    case "legacy_watch":
       bonus.health = 1;
       break;
     case "black_card_bag":
     case "obsidian_bag":
     case "holo_art_vault":
     case "armored_limo":
+    case "stealth_data_bag":
+    case "orbital_limo":
       bonus.attack = 1;
       bonus.health = 1;
       break;
@@ -2320,6 +3181,9 @@ function applyLuxuryUnitBonus(unit, cardId) {
     case "oceanic_cruise":
     case "orbital_estate":
     case "corporate_yacht":
+    case "marina_resort":
+    case "obsidian_cruiser":
+    case "sapphire_skytower":
       bonus.health = 2;
       bonus.grantedGuard = !unit.guard;
       unit.guard = true;
@@ -2514,35 +3378,47 @@ function applyLuxuryCashEffect(owner, opponent, cardId) {
   switch (cardId) {
     case "cyber_car":
     case "aurora_hypercar":
+    case "solar_supercar":
+    case "graviton_motorcycle":
       owner.energy += 2;
       break;
     case "limited_watch":
     case "sapphire_watch":
+    case "chrono_boutique_watch":
+    case "legacy_watch":
       owner.nextDiscount += 2;
       break;
     case "black_card_bag":
     case "obsidian_bag":
+    case "stealth_data_bag":
       drawCards(owner, 2);
       break;
     case "limited_sneakers":
     case "private_jet":
     case "phantom_sneakers":
+    case "quantum_runway_sneakers":
       owner.board.forEach((unit) => readyUnit(unit));
       break;
     case "designer_jacket":
     case "armored_limo":
+    case "orbital_limo":
       gainShield(owner, 3);
       break;
     case "sky_estate":
     case "sky_penthouse":
+    case "marina_resort":
+    case "sapphire_skytower":
       healHero(owner, 4);
       break;
     case "luxury_cruise":
     case "oceanic_cruise":
+    case "obsidian_cruiser":
       summonToken(owner, "郵輪保全", 1, 2, true);
       summonToken(owner, "郵輪保全", 1, 2, true);
       break;
     case "private_airship":
+    case "diamond_airliner":
+    case "executive_airliner":
       drawCards(owner, 1);
       owner.energy += 1;
       break;
@@ -2671,13 +3547,21 @@ function chooseAiTarget(card) {
       "luxury_cruise",
       "sky_estate",
       "aurora_hypercar",
+      "solar_supercar",
       "phantom_sneakers",
+      "quantum_runway_sneakers",
       "sky_penthouse",
       "oceanic_cruise",
+      "obsidian_cruiser",
       "private_airship",
+      "diamond_airliner",
+      "executive_airliner",
       "armored_limo",
+      "orbital_limo",
       "orbital_estate",
       "corporate_yacht",
+      "marina_resort",
+      "sapphire_skytower",
     ].includes(card.id);
     if (prefersUnit && units.length > 0) return { kind: "unit", owner: "ai", uid: units[0].uid };
     if (game.ai.luxuries.length < MAX_OPERATOR_LUXURIES) return { kind: "hero", owner: "ai" };
@@ -2766,7 +3650,10 @@ function readyBoardForTurn(player) {
 
 function processStartOfTurn(player, opponent) {
   if (
-    (hasOperatorLuxury(player, "limited_watch") || hasOperatorLuxury(player, "sapphire_watch")) &&
+    (hasOperatorLuxury(player, "limited_watch") ||
+      hasOperatorLuxury(player, "sapphire_watch") ||
+      hasOperatorLuxury(player, "chrono_boutique_watch") ||
+      hasOperatorLuxury(player, "legacy_watch")) &&
     player.hand.length < opponent.hand.length
   ) {
     drawCards(player, 1);
@@ -2782,7 +3669,9 @@ function processEndOfTurn(player, opponent) {
   if (
     hasOperatorLuxury(player, "sky_estate") ||
     hasOperatorLuxury(player, "sky_penthouse") ||
-    hasOperatorLuxury(player, "orbital_estate")
+    hasOperatorLuxury(player, "orbital_estate") ||
+    hasOperatorLuxury(player, "marina_resort") ||
+    hasOperatorLuxury(player, "sapphire_skytower")
   ) {
     gainShield(player, 1);
     addLog(`空中豪宅為${player.name}提供 1 點護盾。`);
@@ -2790,7 +3679,8 @@ function processEndOfTurn(player, opponent) {
   if (
     (hasOperatorLuxury(player, "luxury_cruise") ||
       hasOperatorLuxury(player, "oceanic_cruise") ||
-      hasOperatorLuxury(player, "corporate_yacht")) &&
+      hasOperatorLuxury(player, "corporate_yacht") ||
+      hasOperatorLuxury(player, "obsidian_cruiser")) &&
     player.life < opponent.life
   ) {
     healHero(player, 1);
@@ -2847,7 +3737,10 @@ function getPlayableCost(card, player) {
   let cost = card.cost;
   if (
     card.type === "program" &&
-    (hasOperatorLuxury(player, "private_jet") || hasOperatorLuxury(player, "private_airship")) &&
+    (hasOperatorLuxury(player, "private_jet") ||
+      hasOperatorLuxury(player, "private_airship") ||
+      hasOperatorLuxury(player, "diamond_airliner") ||
+      hasOperatorLuxury(player, "executive_airliner")) &&
     !player.flags.firstProgramPlayed
   ) {
     cost -= 1;
@@ -2964,6 +3857,7 @@ function getHandLimit(player) {
   if (hasOperatorLuxury(player, "black_card_bag")) limit += 2;
   if (hasOperatorLuxury(player, "obsidian_bag")) limit += 1;
   if (hasOperatorLuxury(player, "holo_art_vault")) limit += 1;
+  if (hasOperatorLuxury(player, "stealth_data_bag")) limit += 1;
   return limit;
 }
 
@@ -2982,7 +3876,9 @@ function damageHero(player, amount, sourcePlayer = null, ignoreReduction = false
   let incoming = amount;
   if (
     !ignoreReduction &&
-    (hasOperatorLuxury(player, "designer_jacket") || hasOperatorLuxury(player, "armored_limo")) &&
+    (hasOperatorLuxury(player, "designer_jacket") ||
+      hasOperatorLuxury(player, "armored_limo") ||
+      hasOperatorLuxury(player, "orbital_limo")) &&
     !player.flags.jacketUsed
   ) {
     incoming = Math.max(0, incoming - 1);
