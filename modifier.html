@@ -103,10 +103,14 @@
               <div class="art-tools custom-art-tools">
                 <input id="customImage" class="file-input" type="file" accept="image/*" />
                 <input id="customImageData" type="hidden" />
+                <input id="customEditingId" type="hidden" />
                 <label class="ghost-button compact-button" for="customImage">上傳圖片</label>
+                <button id="clearCustomImageBtn" class="ghost-button compact-button" type="button">清除圖片</button>
+                <button id="cancelCustomEditBtn" class="ghost-button compact-button" type="button" hidden>取消編輯</button>
                 <button id="createCustomCardBtn" class="primary-button" type="button">建立卡牌</button>
               </div>
             </div>
+            <div id="customCardList" class="custom-card-list"></div>
           </section>
 
           <section class="section-band">

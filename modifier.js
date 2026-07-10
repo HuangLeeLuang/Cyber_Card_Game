@@ -53,6 +53,7 @@ let mods = loadMods();
 document.addEventListener("DOMContentLoaded", () => {
   renderRules();
   renderCustomCardForm();
+  renderCustomCardList();
   renderCards();
   updateExportBox();
   document.querySelector("#saveRulesBtn").addEventListener("click", saveAll);
@@ -60,9 +61,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#exportBtn").addEventListener("click", updateExportBox);
   document.querySelector("#importBtn").addEventListener("click", importMods);
   document.querySelector("#createCustomCardBtn").addEventListener("click", createCustomCard);
+  document.querySelector("#clearCustomImageBtn").addEventListener("click", clearCustomImage);
+  document.querySelector("#cancelCustomEditBtn").addEventListener("click", cancelCustomEdit);
   document.querySelector("#cardSearch").addEventListener("input", renderCards);
   document.querySelector("#cardEditorGrid").addEventListener("change", handleCardEditorChange);
   document.querySelector("#cardEditorGrid").addEventListener("click", handleCardEditorClick);
+  document.querySelector("#customCardList").addEventListener("click", handleCustomCardListClick);
   document.querySelector("#customImage").addEventListener("change", handleCustomImageUpload);
   document.querySelector("#customType").addEventListener("change", updateCustomFormState);
   document.querySelector("#customEffect").addEventListener("change", syncTargetFromEffect);
@@ -131,10 +135,41 @@ function syncTargetFromEffect() {
   }
 }
 
+function renderCustomCardList() {
+  const list = document.querySelector("#customCardList");
+  if (!mods.customCards.length) {
+    list.innerHTML = `<p class="empty-inline">目前沒有自製卡。</p>`;
+    return;
+  }
+
+  list.innerHTML = `
+    <h3>目前自製卡</h3>
+    <div class="custom-card-items">
+      ${mods.customCards
+        .map(
+          (card) => `
+            <div class="custom-card-row" data-custom-card-id="${escapeAttr(card.id)}">
+              <div class="editor-art mini-art" style="${getArtStyle(card)}" aria-hidden="true"></div>
+              <div>
+                <strong>${escapeHtml(card.name)}</strong>
+                <p>${data.cardTypes[card.type] || card.type} · ${data.factions[card.faction] || card.faction}</p>
+              </div>
+              <div class="custom-card-actions">
+                <button class="ghost-button compact-button" type="button" data-edit-custom-card>編輯</button>
+                <button class="ghost-button compact-button danger-button" type="button" data-delete-custom-card>刪除</button>
+              </div>
+            </div>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function renderCards() {
   const query = document.querySelector("#cardSearch")?.value.trim().toLowerCase() || "";
   const cards = data.originalCards.filter((card) => {
-    const haystack = `${card.name} ${data.cardTypes[card.type]} ${data.factions[card.faction]}`.toLowerCase();
+    const haystack = `${card.name} ${data.cardTypes[card.type]} ${data.factions[card.faction]} ${card.custom ? "自製" : ""}`.toLowerCase();
     return haystack.includes(query);
   });
 
@@ -163,6 +198,7 @@ function renderCardEditor(card) {
         <input data-card-field="customArt" type="hidden" value="${escapeAttr(current.customArt || "")}" />
         <label class="ghost-button compact-button" for="art-${escapeAttr(card.id)}">上傳圖片</label>
         <button class="ghost-button compact-button" type="button" data-clear-art>清除圖片</button>
+        <button class="ghost-button compact-button" type="button" data-clone-card>複製成自製卡</button>
       </div>
       <div class="editor-fields">
         <div class="field">
@@ -205,12 +241,50 @@ async function handleCardEditorChange(event) {
 }
 
 function handleCardEditorClick(event) {
+  if (event.target.matches("[data-clone-card]")) {
+    const editor = event.target.closest(".editor-card");
+    const card = data.originalCards.find((item) => item.id === editor.dataset.cardId);
+    if (card) loadCardIntoCustomForm(card, true);
+    return;
+  }
+
   if (!event.target.matches("[data-clear-art]")) return;
   const editor = event.target.closest(".editor-card");
   const card = data.originalCards.find((item) => item.id === editor.dataset.cardId);
   editor.querySelector('[data-card-field="customArt"]').value = "";
+  if (card.custom) {
+    const nextMods = collectMods();
+    nextMods.customCards = nextMods.customCards.map((item) => {
+      if (item.id !== card.id) return item;
+      const updated = { ...item };
+      delete updated.customArt;
+      return updated;
+    });
+    delete nextMods.cards[card.id]?.customArt;
+    if (!persistMods(nextMods, "已清除這張自製卡的圖片。")) return;
+    const updatedCard = { ...card };
+    delete updatedCard.customArt;
+    upsertCustomCardInData(updatedCard);
+    renderCustomCardList();
+    editor.querySelector(".editor-art").setAttribute("style", getArtStyle(updatedCard));
+    updateExportBox();
+    return;
+  }
   editor.querySelector(".editor-art").setAttribute("style", getArtStyle(card));
   setStatus("已清除這張卡的自訂圖片，按「儲存設定」後會套用。");
+}
+
+function handleCustomCardListClick(event) {
+  const row = event.target.closest("[data-custom-card-id]");
+  if (!row) return;
+  const id = row.dataset.customCardId;
+  if (event.target.matches("[data-edit-custom-card]")) {
+    const card = mods.customCards.find((item) => item.id === id);
+    if (card) loadCardIntoCustomForm(card, false);
+  }
+  if (event.target.matches("[data-delete-custom-card]")) {
+    deleteCustomCard(id);
+  }
 }
 
 async function handleCustomImageUpload(event) {
@@ -228,10 +302,58 @@ async function handleCustomImageUpload(event) {
   }
 }
 
+function loadCardIntoCustomForm(card, asCopy) {
+  document.querySelector("#customEditingId").value = asCopy ? "" : card.id;
+  document.querySelector("#customName").value = asCopy ? `${card.name} 複製` : card.name;
+  document.querySelector("#customType").value = card.type;
+  document.querySelector("#customFaction").value = card.faction;
+  document.querySelector("#customCost").value = card.cost ?? 1;
+  document.querySelector("#customAttack").value = card.attack ?? 1;
+  document.querySelector("#customHealth").value = card.health ?? 1;
+  document.querySelector("#customEffect").value = effectOptions.some(([value]) => value === card.effect) ? card.effect || "" : "";
+  document.querySelector("#customTarget").value = card.target || "";
+  document.querySelector("#customText").value = card.text || "";
+  document.querySelector("#customCashText").value = card.cashText || "";
+  document.querySelector("#customGuard").checked = Boolean(card.guard);
+  document.querySelector("#customCharge").checked = Boolean(card.charge);
+  document.querySelector("#customImageData").value = sanitizeCustomImage(card.customArt) || "";
+  document.querySelector("#customPreview").setAttribute("style", getArtStyle(card));
+  document.querySelector("#createCustomCardBtn").textContent = asCopy ? "建立卡牌" : "儲存自製卡";
+  document.querySelector("#cancelCustomEditBtn").hidden = asCopy;
+  updateCustomFormState();
+  setStatus(asCopy ? "已複製到自製卡表單，可再調整後建立。" : "正在編輯自製卡。");
+  document.querySelector("#customName").focus();
+}
+
+function clearCustomImage() {
+  document.querySelector("#customImageData").value = "";
+  document.querySelector("#customPreview").setAttribute("style", getArtStyle({ art: 0 }));
+  setStatus("已清除自製卡表單圖片。");
+}
+
+function cancelCustomEdit() {
+  clearCustomCardForm();
+  setStatus("已取消編輯。");
+}
+
+function deleteCustomCard(cardId) {
+  const nextMods = collectMods();
+  nextMods.customCards = nextMods.customCards.filter((card) => card.id !== cardId);
+  delete nextMods.cards[cardId];
+  if (!persistMods(nextMods, "已刪除自製卡。")) return;
+  removeCustomCardFromData(cardId);
+  removeCardFromStoredDeck(cardId);
+  clearCustomCardForm();
+  renderCustomCardList();
+  renderCards();
+  updateExportBox();
+}
+
 function createCustomCard() {
+  const editingId = document.querySelector("#customEditingId").value;
   const type = document.querySelector("#customType").value;
   const card = {
-    id: makeCustomCardId(document.querySelector("#customName").value),
+    id: editingId || makeCustomCardId(document.querySelector("#customName").value),
     name: document.querySelector("#customName").value.trim() || "自製卡",
     type,
     faction: document.querySelector("#customFaction").value,
@@ -255,28 +377,40 @@ function createCustomCard() {
     card.cashText = document.querySelector("#customCashText").value.trim() || "抽 1 張牌。";
   }
 
-  mods = collectMods();
-  mods.customCards.push(card);
-  data.cards.push(card);
-  data.originalCards.push({ ...card });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(mods));
+  const nextMods = collectMods();
+  if (editingId) {
+    nextMods.customCards = nextMods.customCards.map((item) => (item.id === editingId ? card : item));
+    delete nextMods.cards[editingId];
+  } else {
+    nextMods.customCards.push(card);
+  }
+  if (!persistMods(nextMods, editingId ? "自製卡已更新。" : "自製卡已建立。")) return;
+  upsertCustomCardInData(card);
   clearCustomCardForm();
+  renderCustomCardList();
   renderCards();
   updateExportBox();
-  setStatus("自製卡已建立。回到遊戲頁重新整理後可配進牌組。");
 }
 
 function clearCustomCardForm() {
+  document.querySelector("#customEditingId").value = "";
   document.querySelector("#customName").value = "";
+  document.querySelector("#customType").value = "unit";
+  document.querySelector("#customFaction").value = "neutral";
   document.querySelector("#customCost").value = "1";
   document.querySelector("#customAttack").value = "1";
   document.querySelector("#customHealth").value = "1";
+  document.querySelector("#customEffect").value = "";
+  document.querySelector("#customTarget").value = "";
   document.querySelector("#customText").value = "";
   document.querySelector("#customCashText").value = "";
   document.querySelector("#customImageData").value = "";
   document.querySelector("#customPreview").setAttribute("style", getArtStyle({ art: 0 }));
   document.querySelector("#customGuard").checked = false;
   document.querySelector("#customCharge").checked = false;
+  document.querySelector("#createCustomCardBtn").textContent = "建立卡牌";
+  document.querySelector("#cancelCustomEditBtn").hidden = true;
+  updateCustomFormState();
 }
 
 function collectMods() {
@@ -319,13 +453,12 @@ function isCardModified(original, cardMod) {
 }
 
 function saveAll() {
-  mods = collectMods();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(mods));
-  updateExportBox();
-  setStatus("已儲存。回到遊戲並重新開局即可套用。");
+  const nextMods = collectMods();
+  if (persistMods(nextMods, "已儲存。回到遊戲並重新開局即可套用。")) updateExportBox();
 }
 
 function resetAll() {
+  (mods.customCards || []).forEach((card) => removeCardFromStoredDeck(card.id));
   localStorage.removeItem(STORAGE_KEY);
   setStatus("已重置為預設值。");
   window.setTimeout(() => window.location.reload(), 250);
@@ -337,12 +470,51 @@ function updateExportBox() {
 
 function importMods() {
   try {
-    mods = normalizeMods(JSON.parse(document.querySelector("#exportBox").value || "{}"));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mods));
-    setStatus("匯入完成，正在重新整理。");
-    window.setTimeout(() => window.location.reload(), 250);
+    const nextMods = normalizeMods(JSON.parse(document.querySelector("#exportBox").value || "{}"));
+    const nextIds = new Set(nextMods.customCards.map((card) => card.id));
+    (mods.customCards || []).forEach((card) => {
+      if (!nextIds.has(card.id)) removeCardFromStoredDeck(card.id);
+    });
+    if (persistMods(nextMods, "匯入完成，正在重新整理。")) {
+      window.setTimeout(() => window.location.reload(), 250);
+    }
   } catch {
     setStatus("匯入失敗：JSON 格式不正確。");
+  }
+}
+
+function persistMods(nextMods, successText) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextMods));
+    mods = nextMods;
+    if (successText) setStatus(successText);
+    return true;
+  } catch {
+    setStatus("儲存失敗：圖片資料可能太大，請清除幾張圖片或改用較小的圖片。");
+    return false;
+  }
+}
+
+function upsertCustomCardInData(card) {
+  removeCustomCardFromData(card.id);
+  data.cards.push(card);
+  data.originalCards.push({ ...card });
+}
+
+function removeCustomCardFromData(cardId) {
+  data.cards = data.cards.filter((card) => card.id !== cardId);
+  data.originalCards = data.originalCards.filter((card) => card.id !== cardId);
+}
+
+function removeCardFromStoredDeck(cardId) {
+  try {
+    const saved = JSON.parse(localStorage.getItem("cyberCardDeck") || "{}");
+    if (saved.counts && Object.prototype.hasOwnProperty.call(saved.counts, cardId)) {
+      delete saved.counts[cardId];
+      localStorage.setItem("cyberCardDeck", JSON.stringify(saved));
+    }
+  } catch {
+    // Ignore broken deck storage; the game page will rebuild from valid cards.
   }
 }
 
