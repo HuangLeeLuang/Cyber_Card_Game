@@ -1894,7 +1894,7 @@ function showPlayedCard(card, owner) {
       elements.playReveal.innerHTML = "";
       if (game) game.revealing = false;
       resolve();
-    }, 2000);
+    }, 1000);
   });
 }
 
