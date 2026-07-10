@@ -1,8 +1,8 @@
 const data = window.CYBER_CARD_DATA;
 const STORAGE_KEY = "cyberCardGameMods";
 const ART_ATLASES = {
-  1: { columns: 6, rows: 6, image: "url(assets/card-art-atlas.png)" },
-  2: { columns: 10, rows: 6, image: "url(assets/card-art-atlas-2.png)" },
+  1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1.02, image: "url(assets/card-art-atlas.png)" },
+  2: { columns: 10, rows: 7, ratio: "7 / 10", zoom: 1.04, image: "url(assets/card-art-atlas-2.png)" },
 };
 const ruleFields = [
   ["deckSize", "牌組張數", 8, 30],
@@ -181,11 +181,17 @@ function setStatus(text) {
 function getArtStyle(card) {
   const art = Number.isFinite(card?.art) ? card.art : 0;
   const atlas = ART_ATLASES[card?.atlas || 1] || ART_ATLASES[1];
+  const zoom = atlas.zoom || 1;
   const col = art % atlas.columns;
   const row = Math.floor(art / atlas.columns);
-  const x = atlas.columns > 1 ? (col / (atlas.columns - 1)) * 100 : 0;
-  const y = atlas.rows > 1 ? (row / (atlas.rows - 1)) * 100 : 0;
-  return `--art-image:${atlas.image};--art-size:${atlas.columns * 100}% ${atlas.rows * 100}%;--art-x:${x}%;--art-y:${y}%;`;
+  const x = getSpritePosition(col, atlas.columns, zoom);
+  const y = getSpritePosition(row, atlas.rows, zoom);
+  return `--art-image:${atlas.image};--art-size:${atlas.columns * 100 * zoom}% ${atlas.rows * 100 * zoom}%;--art-x:${x}%;--art-y:${y}%;--art-ratio:${atlas.ratio};`;
+}
+
+function getSpritePosition(index, count, zoom) {
+  if (count <= 1) return 50;
+  return ((0.5 - (index + 0.5) * zoom) / (1 - count * zoom)) * 100;
 }
 
 function clampInt(value, min, max, fallback) {
