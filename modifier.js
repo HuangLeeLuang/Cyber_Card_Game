@@ -1,3 +1,4 @@
+(() => {
 const FALLBACK_CARD_TYPES = {
   unit: "單位",
   program: "程式",
@@ -35,14 +36,14 @@ const data = {
   defaultRules: { ...FALLBACK_RULES, ...(sourceData.defaultRules || {}) },
 };
 const STORAGE_KEY = "cyberCardGameMods";
-const ART_ATLASES = {
+const MODIFIER_ART_ATLASES = {
   1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas.png)" },
   2: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-2.png)" },
   3: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-3.png)" },
   4: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-4.png)" },
   5: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-5.png)" },
 };
-const CUSTOM_IMAGE_PATTERN = /^data:image\/(?:png|jpe?g|webp);base64,[a-z0-9+/=]+$/i;
+const MODIFIER_CUSTOM_IMAGE_PATTERN = /^data:image\/(?:png|jpe?g|webp);base64,[a-z0-9+/=]+$/i;
 const effectOptions = [
   ["", "無額外效果", ""],
   ["draw_1", "抽 1 張牌", ""],
@@ -388,34 +389,39 @@ function deleteCustomCard(cardId) {
 }
 
 function createCustomCard() {
-  const editingId = document.querySelector("#customEditingId").value;
-  const type = document.querySelector("#customType").value;
+  setStatus("正在建立卡牌...");
+  const editingId = getFieldValue("customEditingId");
+  const type = data.cardTypes[getFieldValue("customType")] ? getFieldValue("customType") : "unit";
+  const faction = data.factions[getFieldValue("customFaction")] ? getFieldValue("customFaction") : "neutral";
   const card = {
-    id: editingId || makeCustomCardId(document.querySelector("#customName").value),
-    name: document.querySelector("#customName").value.trim() || "自製卡",
+    id: editingId || makeCustomCardId(getFieldValue("customName")),
+    name: getFieldValue("customName").trim() || "自製卡",
     type,
-    faction: document.querySelector("#customFaction").value,
-    cost: clampInt(document.querySelector("#customCost").value, 0, 12, 1),
-    text: document.querySelector("#customText").value.trim() || "自製卡牌。",
+    faction,
+    cost: clampInt(getFieldValue("customCost"), 0, 12, 1),
+    text: getFieldValue("customText").trim() || "自製卡牌。",
     custom: true,
   };
-  const effect = document.querySelector("#customEffect").value;
-  const target = document.querySelector("#customTarget").value;
-  const customArt = sanitizeCustomImage(document.querySelector("#customImageData").value);
+  const effect = effectOptions.some(([value]) => value === getFieldValue("customEffect")) ? getFieldValue("customEffect") : "";
+  const target = ["", "enemy", "enemyUnit", "friendlyUnit"].includes(getFieldValue("customTarget"))
+    ? getFieldValue("customTarget")
+    : "";
+  const customArt = sanitizeCustomImage(getFieldValue("customImageData"));
   if (effect) card.effect = effect;
   if (target && type !== "luxury") card.target = target;
   if (customArt) card.customArt = customArt;
   if (type === "unit") {
-    card.attack = clampInt(document.querySelector("#customAttack").value, 0, 12, 1);
-    card.health = clampInt(document.querySelector("#customHealth").value, 1, 20, 1);
-    if (document.querySelector("#customGuard").checked) card.guard = true;
-    if (document.querySelector("#customCharge").checked) card.charge = true;
+    card.attack = clampInt(getFieldValue("customAttack"), 0, 12, 1);
+    card.health = clampInt(getFieldValue("customHealth"), 1, 20, 1);
+    if (document.querySelector("#customGuard")?.checked) card.guard = true;
+    if (document.querySelector("#customCharge")?.checked) card.charge = true;
   }
   if (type === "luxury") {
-    card.cashText = document.querySelector("#customCashText").value.trim() || "抽 1 張牌。";
+    card.cashText = getFieldValue("customCashText").trim() || "抽 1 張牌。";
   }
 
   const nextMods = collectMods();
+  nextMods.customCards = Array.isArray(nextMods.customCards) ? nextMods.customCards : [];
   if (editingId) {
     nextMods.customCards = nextMods.customCards.map((item) => (item.id === editingId ? card : item));
     delete nextMods.cards[editingId];
@@ -428,6 +434,10 @@ function createCustomCard() {
   renderCustomCardList();
   renderCards();
   updateExportBox();
+}
+
+function getFieldValue(id) {
+  return document.querySelector(`#${id}`)?.value || "";
 }
 
 function clearCustomCardForm() {
@@ -567,7 +577,7 @@ function getArtStyle(card) {
     return `--art-image:url("${escapeCssUrl(customArt)}");--art-size:cover;--art-x:center;--art-y:center;--art-ratio:1 / 1;`;
   }
   const art = Number.isFinite(card?.art) ? card.art : 0;
-  const atlas = ART_ATLASES[card?.atlas || 1] || ART_ATLASES[1];
+  const atlas = MODIFIER_ART_ATLASES[card?.atlas || 1] || MODIFIER_ART_ATLASES[1];
   const zoom = atlas.zoom || 1;
   const col = art % atlas.columns;
   const row = Math.floor(art / atlas.columns);
@@ -628,7 +638,7 @@ function sanitizeCustomImage(value) {
   if (typeof value !== "string") return "";
   const trimmed = value.trim();
   if (trimmed.length > 450000) return "";
-  return CUSTOM_IMAGE_PATTERN.test(trimmed) ? trimmed : "";
+  return MODIFIER_CUSTOM_IMAGE_PATTERN.test(trimmed) ? trimmed : "";
 }
 
 function clampInt(value, min, max, fallback) {
@@ -652,3 +662,4 @@ function escapeHtml(text) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 }
+})();
