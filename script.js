@@ -1171,8 +1171,8 @@ const MAX_ENERGY = ACTIVE_RULES.maxEnergy;
 const OPENING_HAND = ACTIVE_RULES.openingHand;
 const DRAW_PER_TURN = ACTIVE_RULES.drawPerTurn;
 const ART_ATLASES = {
-  1: { columns: 6, rows: 6, image: 'url("assets/card-art-atlas.png")' },
-  2: { columns: 10, rows: 6, image: 'url("assets/card-art-atlas-2.png")' },
+  1: { columns: 6, rows: 6, image: "url(assets/card-art-atlas.png)" },
+  2: { columns: 10, rows: 6, image: "url(assets/card-art-atlas-2.png)" },
 };
 
 let selectedOperator = "merc";
