@@ -446,6 +446,28 @@ p {
   resize: vertical;
 }
 
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-field {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(126, 227, 255, 0.24);
+  border-radius: 6px;
+  background: rgba(5, 9, 15, 0.62);
+  color: #dceaff;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
 .modifier-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -468,6 +490,17 @@ p {
   gap: 10px;
 }
 
+.custom-card-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.custom-text-field,
+.custom-art-tools {
+  grid-column: 1 / -1;
+}
+
 .editor-top {
   display: grid;
   grid-template-columns: 74px minmax(0, 1fr);
@@ -486,6 +519,24 @@ p {
   background-size: auto, var(--art-size, 600% 600%);
   background-position: center, var(--art-x, 0%) var(--art-y, 0%);
   background-repeat: no-repeat;
+}
+
+.custom-preview {
+  width: 88px;
+  flex: 0 0 auto;
+}
+
+.art-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.compact-button {
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: 0.82rem;
 }
 
 .editor-fields {
@@ -1453,6 +1504,7 @@ p {
   }
 
   .rule-editor,
+  .custom-card-form,
   .card-editor-grid,
   .deck-samples {
     grid-template-columns: 1fr;

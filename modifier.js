@@ -7,6 +7,35 @@ const ART_ATLASES = {
   4: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-4.png)" },
   5: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-5.png)" },
 };
+const CUSTOM_IMAGE_PATTERN = /^data:image\/(?:png|jpe?g|webp);base64,[a-z0-9+/=]+$/i;
+const effectOptions = [
+  ["", "無額外效果", ""],
+  ["draw_1", "抽 1 張牌", ""],
+  ["draw_2", "抽 2 張牌", ""],
+  ["heal_hero_2", "回復 2 生命", ""],
+  ["heal_3", "回復 3 生命", ""],
+  ["gain_shield_1", "獲得 1 護盾", ""],
+  ["gain_shield_2", "獲得 2 護盾", ""],
+  ["discount_1", "下一張牌費用 -1", ""],
+  ["deal_2", "造成 2 傷害", "enemy"],
+  ["deal_3", "造成 3 傷害", "enemy"],
+  ["deal_2_gain_shield_1", "造成 2 傷害並獲得 1 護盾", "enemy"],
+  ["deal_1_freeze", "造成 1 傷害並凍結", "enemyUnit"],
+  ["draw_1_break_shield", "抽 1 張並移除敵方 1 護盾", ""],
+  ["enemy_units_minus_1_attack", "敵方所有單位 -1 攻擊", ""],
+  ["enemy_units_take_1", "敵方所有單位受到 1 傷害", ""],
+  ["deal_1_all_enemies", "所有敵人受到 1 傷害", ""],
+  ["summon_1_1_guard", "召喚 1/1 守衛", ""],
+  ["summon_2_1_charge", "召喚 2/1 快攻", ""],
+  ["buff_1_1_ready", "友方單位 +1/+1 並準備", "friendlyUnit"],
+  ["buff_1_0_ready", "友方單位 +1/+0 並準備", "friendlyUnit"],
+  ["buff_2_0", "友方單位 +2/+0", "friendlyUnit"],
+  ["buff_attack_2_ready", "友方單位 +2/+0 並準備", "friendlyUnit"],
+  ["buff_0_2_guard", "友方單位 +0/+2 並守衛", "friendlyUnit"],
+  ["buff_0_3_guard", "友方單位 +0/+3 並守衛", "friendlyUnit"],
+  ["buff_1_2_guard", "友方單位 +1/+2 並守衛", "friendlyUnit"],
+  ["ready_all_units", "準備所有友方單位", ""],
+];
 const ruleFields = [
   ["deckSize", "牌組張數", 8, 30],
   ["maxBoard", "場上單位上限", 2, 8],
@@ -23,25 +52,36 @@ let mods = loadMods();
 
 document.addEventListener("DOMContentLoaded", () => {
   renderRules();
+  renderCustomCardForm();
   renderCards();
   updateExportBox();
   document.querySelector("#saveRulesBtn").addEventListener("click", saveAll);
   document.querySelector("#resetModsBtn").addEventListener("click", resetAll);
   document.querySelector("#exportBtn").addEventListener("click", updateExportBox);
   document.querySelector("#importBtn").addEventListener("click", importMods);
+  document.querySelector("#createCustomCardBtn").addEventListener("click", createCustomCard);
   document.querySelector("#cardSearch").addEventListener("input", renderCards);
+  document.querySelector("#cardEditorGrid").addEventListener("change", handleCardEditorChange);
+  document.querySelector("#cardEditorGrid").addEventListener("click", handleCardEditorClick);
+  document.querySelector("#customImage").addEventListener("change", handleCustomImageUpload);
+  document.querySelector("#customType").addEventListener("change", updateCustomFormState);
+  document.querySelector("#customEffect").addEventListener("change", syncTargetFromEffect);
 });
 
 function loadMods() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    return {
-      rules: { ...data.defaultRules, ...(saved.rules || {}) },
-      cards: saved.cards || {},
-    };
+    return normalizeMods(JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"));
   } catch {
-    return { rules: { ...data.defaultRules }, cards: {} };
+    return normalizeMods({});
   }
+}
+
+function normalizeMods(saved) {
+  return {
+    rules: { ...data.defaultRules, ...(saved.rules || {}) },
+    cards: saved.cards && typeof saved.cards === "object" ? saved.cards : {},
+    customCards: Array.isArray(saved.customCards) ? saved.customCards : [],
+  };
 }
 
 function renderRules() {
@@ -56,6 +96,39 @@ function renderRules() {
       `;
     })
     .join("");
+}
+
+function renderCustomCardForm() {
+  document.querySelector("#customType").innerHTML = Object.entries(data.cardTypes)
+    .map(([value, label]) => `<option value="${value}">${label}</option>`)
+    .join("");
+  document.querySelector("#customFaction").innerHTML = Object.entries(data.factions)
+    .map(([value, label]) => `<option value="${value}">${label}</option>`)
+    .join("");
+  document.querySelector("#customEffect").innerHTML = effectOptions
+    .map(([value, label]) => `<option value="${value}">${label}</option>`)
+    .join("");
+  updateCustomFormState();
+}
+
+function updateCustomFormState() {
+  const type = document.querySelector("#customType").value;
+  const isUnit = type === "unit";
+  const isLuxury = type === "luxury";
+  document.querySelector("#customAttack").disabled = !isUnit;
+  document.querySelector("#customHealth").disabled = !isUnit;
+  document.querySelector("#customGuard").disabled = !isUnit;
+  document.querySelector("#customCharge").disabled = !isUnit;
+  document.querySelector("#customCashText").disabled = !isLuxury;
+  document.querySelector("#customTarget").disabled = isLuxury;
+  if (isLuxury) document.querySelector("#customTarget").value = "";
+}
+
+function syncTargetFromEffect() {
+  const selected = effectOptions.find(([value]) => value === document.querySelector("#customEffect").value);
+  if (selected && selected[2] !== undefined && !document.querySelector("#customTarget").disabled) {
+    document.querySelector("#customTarget").value = selected[2];
+  }
 }
 
 function renderCards() {
@@ -74,14 +147,22 @@ function renderCardEditor(card) {
   const attack = current.attack ?? card.attack ?? "";
   const health = current.health ?? card.health ?? "";
   const text = current.text ?? "";
+  const customArt = sanitizeCustomImage(current.customArt) || card.customArt || "";
+  const previewCard = { ...card, customArt };
   return `
-    <article class="editor-card" data-card-id="${card.id}">
+    <article class="editor-card" data-card-id="${escapeAttr(card.id)}">
       <div class="editor-top">
-        <div class="editor-art" style="${getArtStyle(card)}" aria-hidden="true"></div>
+        <div class="editor-art" style="${getArtStyle(previewCard)}" aria-hidden="true"></div>
         <div>
-          <strong>${card.name}</strong>
-          <p>${data.cardTypes[card.type]} · ${data.factions[card.faction]}</p>
+          <strong>${escapeHtml(card.name)}</strong>
+          <p>${data.cardTypes[card.type]} · ${data.factions[card.faction]}${card.custom ? " · 自製" : ""}</p>
         </div>
+      </div>
+      <div class="art-tools">
+        <input class="file-input" id="art-${escapeAttr(card.id)}" data-card-art-upload type="file" accept="image/*" />
+        <input data-card-field="customArt" type="hidden" value="${escapeAttr(current.customArt || "")}" />
+        <label class="ghost-button compact-button" for="art-${escapeAttr(card.id)}">上傳圖片</label>
+        <button class="ghost-button compact-button" type="button" data-clear-art>清除圖片</button>
       </div>
       <div class="editor-fields">
         <div class="field">
@@ -99,10 +180,103 @@ function renderCardEditor(card) {
       </div>
       <div class="field">
         <label>自訂文字</label>
-        <textarea data-card-field="text" maxlength="160" placeholder="${card.text}">${escapeHtml(text)}</textarea>
+        <textarea data-card-field="text" maxlength="180" placeholder="${escapeAttr(card.text)}">${escapeHtml(text)}</textarea>
       </div>
     </article>
   `;
+}
+
+async function handleCardEditorChange(event) {
+  if (!event.target.matches("[data-card-art-upload]")) return;
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const dataUrl = await resizeImageFile(file);
+    const editor = event.target.closest(".editor-card");
+    const card = data.originalCards.find((item) => item.id === editor.dataset.cardId);
+    editor.querySelector('[data-card-field="customArt"]').value = dataUrl;
+    editor.querySelector(".editor-art").setAttribute("style", getArtStyle({ ...card, customArt: dataUrl }));
+    setStatus("圖片已載入，按「儲存設定」後會套用。");
+  } catch {
+    setStatus("圖片載入失敗，請換一張圖片。");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function handleCardEditorClick(event) {
+  if (!event.target.matches("[data-clear-art]")) return;
+  const editor = event.target.closest(".editor-card");
+  const card = data.originalCards.find((item) => item.id === editor.dataset.cardId);
+  editor.querySelector('[data-card-field="customArt"]').value = "";
+  editor.querySelector(".editor-art").setAttribute("style", getArtStyle(card));
+  setStatus("已清除這張卡的自訂圖片，按「儲存設定」後會套用。");
+}
+
+async function handleCustomImageUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const dataUrl = await resizeImageFile(file);
+    document.querySelector("#customImageData").value = dataUrl;
+    document.querySelector("#customPreview").setAttribute("style", getArtStyle({ customArt: dataUrl }));
+    setStatus("自製卡圖片已載入。");
+  } catch {
+    setStatus("圖片載入失敗，請換一張圖片。");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function createCustomCard() {
+  const type = document.querySelector("#customType").value;
+  const card = {
+    id: makeCustomCardId(document.querySelector("#customName").value),
+    name: document.querySelector("#customName").value.trim() || "自製卡",
+    type,
+    faction: document.querySelector("#customFaction").value,
+    cost: clampInt(document.querySelector("#customCost").value, 0, 12, 1),
+    text: document.querySelector("#customText").value.trim() || "自製卡牌。",
+    custom: true,
+  };
+  const effect = document.querySelector("#customEffect").value;
+  const target = document.querySelector("#customTarget").value;
+  const customArt = sanitizeCustomImage(document.querySelector("#customImageData").value);
+  if (effect) card.effect = effect;
+  if (target && type !== "luxury") card.target = target;
+  if (customArt) card.customArt = customArt;
+  if (type === "unit") {
+    card.attack = clampInt(document.querySelector("#customAttack").value, 0, 12, 1);
+    card.health = clampInt(document.querySelector("#customHealth").value, 1, 20, 1);
+    if (document.querySelector("#customGuard").checked) card.guard = true;
+    if (document.querySelector("#customCharge").checked) card.charge = true;
+  }
+  if (type === "luxury") {
+    card.cashText = document.querySelector("#customCashText").value.trim() || "抽 1 張牌。";
+  }
+
+  mods = collectMods();
+  mods.customCards.push(card);
+  data.cards.push(card);
+  data.originalCards.push({ ...card });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(mods));
+  clearCustomCardForm();
+  renderCards();
+  updateExportBox();
+  setStatus("自製卡已建立。回到遊戲頁重新整理後可配進牌組。");
+}
+
+function clearCustomCardForm() {
+  document.querySelector("#customName").value = "";
+  document.querySelector("#customCost").value = "1";
+  document.querySelector("#customAttack").value = "1";
+  document.querySelector("#customHealth").value = "1";
+  document.querySelector("#customText").value = "";
+  document.querySelector("#customCashText").value = "";
+  document.querySelector("#customImageData").value = "";
+  document.querySelector("#customPreview").setAttribute("style", getArtStyle({ art: 0 }));
+  document.querySelector("#customGuard").checked = false;
+  document.querySelector("#customCharge").checked = false;
 }
 
 function collectMods() {
@@ -121,6 +295,9 @@ function collectMods() {
       if (input.disabled) return;
       if (field === "text") {
         if (input.value.trim()) cardMod.text = input.value.trim();
+      } else if (field === "customArt") {
+        const customArt = sanitizeCustomImage(input.value);
+        if (customArt) cardMod.customArt = customArt;
       } else {
         const fallback = original[field] ?? 0;
         cardMod[field] = clampInt(input.value, Number(input.min), Number(input.max), fallback);
@@ -129,11 +306,12 @@ function collectMods() {
     if (isCardModified(original, cardMod)) cards[original.id] = cardMod;
   });
 
-  return { rules, cards };
+  return { rules, cards, customCards: mods.customCards || [] };
 }
 
 function isCardModified(original, cardMod) {
   if (cardMod.text) return true;
+  if (cardMod.customArt) return true;
   if (Number(cardMod.cost) !== Number(original.cost)) return true;
   if (original.type === "unit" && Number(cardMod.attack) !== Number(original.attack)) return true;
   if (original.type === "unit" && Number(cardMod.health) !== Number(original.health)) return true;
@@ -149,29 +327,20 @@ function saveAll() {
 
 function resetAll() {
   localStorage.removeItem(STORAGE_KEY);
-  mods = { rules: { ...data.defaultRules }, cards: {} };
-  renderRules();
-  renderCards();
-  updateExportBox();
   setStatus("已重置為預設值。");
+  window.setTimeout(() => window.location.reload(), 250);
 }
 
 function updateExportBox() {
-  document.querySelector("#exportBox").value = JSON.stringify(mods, null, 2);
+  document.querySelector("#exportBox").value = JSON.stringify(collectMods(), null, 2);
 }
 
 function importMods() {
   try {
-    const imported = JSON.parse(document.querySelector("#exportBox").value || "{}");
-    mods = {
-      rules: { ...data.defaultRules, ...(imported.rules || {}) },
-      cards: imported.cards || {},
-    };
+    mods = normalizeMods(JSON.parse(document.querySelector("#exportBox").value || "{}"));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(mods));
-    renderRules();
-    renderCards();
-    updateExportBox();
-    setStatus("匯入完成。");
+    setStatus("匯入完成，正在重新整理。");
+    window.setTimeout(() => window.location.reload(), 250);
   } catch {
     setStatus("匯入失敗：JSON 格式不正確。");
   }
@@ -182,6 +351,10 @@ function setStatus(text) {
 }
 
 function getArtStyle(card) {
+  const customArt = sanitizeCustomImage(card?.customArt);
+  if (customArt) {
+    return `--art-image:url("${escapeCssUrl(customArt)}");--art-size:cover;--art-x:center;--art-y:center;--art-ratio:1 / 1;`;
+  }
   const art = Number.isFinite(card?.art) ? card.art : 0;
   const atlas = ART_ATLASES[card?.atlas || 1] || ART_ATLASES[1];
   const zoom = atlas.zoom || 1;
@@ -197,10 +370,68 @@ function getSpritePosition(index, count, zoom) {
   return ((0.5 - (index + 0.5) * zoom) / (1 - count * zoom)) * 100;
 }
 
+function resizeImageFile(file) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith("image/")) {
+      reject(new Error("Not an image"));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = reject;
+      image.onload = () => {
+        const size = 512;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const side = Math.min(image.width, image.height);
+        const sx = (image.width - side) / 2;
+        const sy = (image.height - side) / 2;
+        canvas.width = size;
+        canvas.height = size;
+        ctx.drawImage(image, sx, sy, side, side, 0, 0, size, size);
+        resolve(canvas.toDataURL("image/jpeg", 0.84));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function makeCustomCardId(name) {
+  const base =
+    name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 24) || "card";
+  const used = new Set(data.originalCards.map((card) => card.id));
+  let id = `custom_${base}_${Date.now().toString(36)}`;
+  while (used.has(id)) id = `custom_${base}_${Date.now().toString(36)}_${Math.floor(Math.random() * 1000)}`;
+  return id;
+}
+
+function sanitizeCustomImage(value) {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (trimmed.length > 450000) return "";
+  return CUSTOM_IMAGE_PATTERN.test(trimmed) ? trimmed : "";
+}
+
 function clampInt(value, min, max, fallback) {
   const number = Number.parseInt(value, 10);
   if (!Number.isFinite(number)) return fallback;
   return Math.max(min, Math.min(max, number));
+}
+
+function escapeCssUrl(value) {
+  return String(value).replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+}
+
+function escapeAttr(text) {
+  return escapeHtml(text);
 }
 
 function escapeHtml(text) {

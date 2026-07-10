@@ -39,6 +39,38 @@ const OPERATORS = {
   },
 };
 
+const CUSTOM_CARD_EFFECTS = new Set([
+  "",
+  "draw_1",
+  "draw_2",
+  "heal_hero_2",
+  "heal_3",
+  "gain_shield_1",
+  "gain_shield_2",
+  "deal_2",
+  "deal_3",
+  "deal_1_freeze",
+  "deal_2_gain_shield_1",
+  "draw_1_gain_shield_1",
+  "draw_1_break_shield",
+  "enemy_units_minus_1_attack",
+  "enemy_units_take_1",
+  "deal_1_all_enemies",
+  "discount_1",
+  "summon_1_1_guard",
+  "summon_2_1_charge",
+  "buff_1_1_ready",
+  "buff_1_0_ready",
+  "buff_2_0",
+  "buff_attack_2_ready",
+  "buff_0_2_guard",
+  "buff_0_3_guard",
+  "buff_1_2_guard",
+  "ready_all_units",
+]);
+const CUSTOM_CARD_TARGETS = new Set(["", "enemy", "enemyUnit", "friendlyUnit"]);
+const CUSTOM_IMAGE_PATTERN = /^data:image\/(?:png|jpe?g|webp);base64,[a-z0-9+/=]+$/i;
+
 const CARDS = [
   {
     id: "chrome_runner",
@@ -760,8 +792,8 @@ CARDS.push(
     faction: "merc",
     cost: 2,
     target: "friendlyUnit",
-    atlas: 2,
-    art: 13,
+    atlas: 3,
+    art: 24,
     text: "一個友方單位 +2/+0。",
     effect: "buff_2_0",
   },
@@ -772,8 +804,8 @@ CARDS.push(
     faction: "merc",
     cost: 2,
     target: "friendlyUnit",
-    atlas: 2,
-    art: 2,
+    atlas: 3,
+    art: 25,
     text: "一個友方單位 +1/+2 並獲得守衛。",
     effect: "buff_1_2_guard",
   },
@@ -977,8 +1009,8 @@ CARDS.push(
     attack: 1,
     health: 3,
     guard: true,
-    atlas: 2,
-    art: 9,
+    atlas: 3,
+    art: 26,
     text: "守衛。",
   },
   {
@@ -1015,8 +1047,8 @@ CARDS.push(
     cost: 3,
     attack: 3,
     health: 3,
-    atlas: 2,
-    art: 6,
+    atlas: 3,
+    art: 27,
     text: "進場：抽 1 張牌，獲得 1 護盾。",
     effect: "draw_1_gain_shield_1",
   },
@@ -1101,7 +1133,7 @@ CARDS.push(
     cost: 2,
     target: "friendlyUnit",
     atlas: 3,
-    art: 0,
+    art: 28,
     text: "一個友方單位 +0/+3 並獲得守衛。",
     effect: "buff_0_3_guard",
   },
@@ -1134,8 +1166,8 @@ CARDS.push(
     type: "luxury",
     faction: "corp",
     cost: 3,
-    atlas: 2,
-    art: 24,
+    atlas: 3,
+    art: 29,
     text: "裝備單位：+0/+2 並獲得守衛。裝備操作者：落後生命時回合結束回復 1。變現：召喚一個 2/2 守衛並抽 1 張牌。",
     cashText: "召喚一個 2/2 守衛並抽 1 張牌。",
   },
@@ -1980,7 +2012,6 @@ CARDS.forEach((card) => {
   if (fix) Object.assign(card, fix);
 });
 
-const ORIGINAL_CARDS = CARDS.map((card) => ({ ...card }));
 const DEFAULT_RULES = {
   deckSize: 15,
   maxBoard: 4,
@@ -1997,6 +2028,8 @@ const ACTIVE_RULES = ACTIVE_MODS.rules;
 const STORY_ACTIVE_KEY = "cyberStoryBattle";
 const STORY_PROGRESS_KEY = "cyberStoryProgress";
 
+addStoredCustomCards(ACTIVE_MODS.customCards);
+const ORIGINAL_CARDS = CARDS.map((card) => ({ ...card }));
 applyStoredCardMods(ACTIVE_MODS.cards);
 
 const CARD_BY_ID = Object.fromEntries(CARDS.map((card) => [card.id, card]));
@@ -2117,6 +2150,7 @@ function loadStoredMods() {
   const mods = {
     rules: { ...DEFAULT_RULES },
     cards: {},
+    customCards: [],
   };
   if (typeof localStorage === "undefined") return mods;
 
@@ -2136,12 +2170,96 @@ function loadStoredMods() {
     if (saved.cards && typeof saved.cards === "object") {
       mods.cards = saved.cards;
     }
+    if (Array.isArray(saved.customCards)) {
+      mods.customCards = sanitizeStoredCustomCards(saved.customCards);
+    }
   } catch {
     return mods;
   }
 
   mods.rules.maxDeckLuxuries = Math.min(mods.rules.maxDeckLuxuries, mods.rules.deckSize);
   return mods;
+}
+
+function addStoredCustomCards(customCards) {
+  const usedIds = new Set(CARDS.map((card) => card.id));
+  sanitizeStoredCustomCards(customCards).forEach((card) => {
+    if (usedIds.has(card.id)) return;
+    usedIds.add(card.id);
+    CARDS.push(card);
+  });
+}
+
+function sanitizeStoredCustomCards(customCards) {
+  if (!Array.isArray(customCards)) return [];
+  const usedIds = new Set(CARDS.map((card) => card.id));
+  const normalized = [];
+  customCards.forEach((raw, index) => {
+    const card = normalizeCustomCard(raw, index);
+    if (!card || usedIds.has(card.id)) return;
+    usedIds.add(card.id);
+    normalized.push(card);
+  });
+  return normalized;
+}
+
+function normalizeCustomCard(raw, index) {
+  if (!raw || typeof raw !== "object") return null;
+  const id = normalizeCustomCardId(raw.id || `custom_card_${index + 1}`);
+  const type = CARD_TYPES[raw.type] ? raw.type : "unit";
+  const faction = FACTIONS[raw.faction] ? raw.faction : "neutral";
+  const effect = CUSTOM_CARD_EFFECTS.has(raw.effect) ? raw.effect : "";
+  const target = CUSTOM_CARD_TARGETS.has(raw.target) ? raw.target : "";
+  const card = {
+    id,
+    name: sanitizeShortText(raw.name, "自製卡", 24),
+    type,
+    faction,
+    cost: clampInt(raw.cost, 0, 12, 1),
+    text: sanitizeShortText(raw.text, "自製卡牌。", 180),
+    custom: true,
+  };
+
+  const customArt = sanitizeCustomImage(raw.customArt);
+  if (customArt) card.customArt = customArt;
+  if (effect) card.effect = effect;
+  if (target && type !== "luxury") card.target = target;
+
+  if (type === "unit") {
+    card.attack = clampInt(raw.attack, 0, 12, 1);
+    card.health = clampInt(raw.health, 1, 20, 1);
+    if (raw.guard === true) card.guard = true;
+    if (raw.charge === true) card.charge = true;
+  }
+
+  if (type === "luxury") {
+    card.cashText = sanitizeShortText(raw.cashText, "抽 1 張牌。", 80);
+  }
+
+  return card;
+}
+
+function normalizeCustomCardId(value) {
+  const cleaned = String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48);
+  if (!cleaned) return `custom_${Date.now().toString(36)}`;
+  return cleaned.startsWith("custom_") ? cleaned : `custom_${cleaned}`;
+}
+
+function sanitizeShortText(value, fallback, maxLength) {
+  const text = typeof value === "string" ? value.trim() : "";
+  return (text || fallback).slice(0, maxLength);
+}
+
+function sanitizeCustomImage(value) {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (trimmed.length > 450000) return "";
+  return CUSTOM_IMAGE_PATTERN.test(trimmed) ? trimmed : "";
 }
 
 function applyStoredCardMods(cardMods) {
@@ -2155,8 +2273,10 @@ function applyStoredCardMods(cardMods) {
       card.health = clampInt(mod.health, 1, 20, card.health);
     }
     if (typeof mod.text === "string" && mod.text.trim()) {
-      card.text = mod.text.trim().slice(0, 160);
+      card.text = mod.text.trim().slice(0, 180);
     }
+    const customArt = sanitizeCustomImage(mod.customArt);
+    if (customArt) card.customArt = customArt;
   });
 }
 
@@ -2460,6 +2580,10 @@ function getMaxCopies(card) {
 }
 
 function getArtStyle(card) {
+  const customArt = sanitizeCustomImage(card?.customArt);
+  if (customArt) {
+    return `--art-image:url("${escapeCssUrl(customArt)}");--art-size:cover;--art-x:center;--art-y:center;--art-ratio:1 / 1;`;
+  }
   const art = Number.isFinite(card?.art) ? card.art : 0;
   const atlas = ART_ATLASES[card?.atlas || 1] || ART_ATLASES[1];
   const zoom = atlas.zoom || 1;
@@ -2468,6 +2592,10 @@ function getArtStyle(card) {
   const x = getSpritePosition(col, atlas.columns, zoom);
   const y = getSpritePosition(row, atlas.rows, zoom);
   return `--art-image:${atlas.image};--art-size:${atlas.columns * 100 * zoom}% ${atlas.rows * 100 * zoom}%;--art-x:${x}%;--art-y:${y}%;--art-ratio:${atlas.ratio};`;
+}
+
+function escapeCssUrl(value) {
+  return String(value).replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 }
 
 function getSpritePosition(index, count, zoom) {
@@ -3189,6 +3317,10 @@ function applyLuxuryUnitBonus(unit, cardId) {
       unit.guard = true;
       break;
     default:
+      if (CARD_BY_ID[cardId]?.custom && CARD_BY_ID[cardId]?.type === "luxury") {
+        bonus.attack = 1;
+        bonus.health = 1;
+      }
       break;
   }
   unit.attack += bonus.attack;

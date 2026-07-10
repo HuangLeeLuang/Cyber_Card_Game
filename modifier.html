@@ -41,8 +41,79 @@
           <section class="section-band">
             <div class="modifier-toolbar">
               <div>
+                <h2>新增自製卡</h2>
+                <p>自製卡會存在這台裝置的瀏覽器裡，可用匯出 JSON 分享給朋友。</p>
+              </div>
+              <div id="customPreview" class="editor-art custom-preview" aria-hidden="true"></div>
+            </div>
+            <div class="custom-card-form">
+              <div class="field">
+                <label for="customName">卡名</label>
+                <input id="customName" maxlength="24" placeholder="輸入自製卡名" />
+              </div>
+              <div class="field">
+                <label for="customType">類型</label>
+                <select id="customType"></select>
+              </div>
+              <div class="field">
+                <label for="customFaction">陣營</label>
+                <select id="customFaction"></select>
+              </div>
+              <div class="field">
+                <label for="customCost">費用</label>
+                <input id="customCost" type="number" min="0" max="12" value="1" />
+              </div>
+              <div class="field">
+                <label for="customAttack">攻擊</label>
+                <input id="customAttack" type="number" min="0" max="12" value="1" />
+              </div>
+              <div class="field">
+                <label for="customHealth">生命</label>
+                <input id="customHealth" type="number" min="1" max="20" value="1" />
+              </div>
+              <div class="field">
+                <label for="customEffect">效果</label>
+                <select id="customEffect"></select>
+              </div>
+              <div class="field">
+                <label for="customTarget">目標</label>
+                <select id="customTarget">
+                  <option value="">不指定</option>
+                  <option value="enemy">敵方或敵方單位</option>
+                  <option value="enemyUnit">敵方單位</option>
+                  <option value="friendlyUnit">友方單位</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="customCashText">奢侈品變現文字</label>
+                <input id="customCashText" maxlength="80" placeholder="預設：抽 1 張牌。" />
+              </div>
+              <label class="toggle-field">
+                <input id="customGuard" type="checkbox" />
+                <span>守衛</span>
+              </label>
+              <label class="toggle-field">
+                <input id="customCharge" type="checkbox" />
+                <span>快攻</span>
+              </label>
+              <div class="field custom-text-field">
+                <label for="customText">卡牌文字</label>
+                <textarea id="customText" maxlength="180" placeholder="輸入卡牌說明"></textarea>
+              </div>
+              <div class="art-tools custom-art-tools">
+                <input id="customImage" class="file-input" type="file" accept="image/*" />
+                <input id="customImageData" type="hidden" />
+                <label class="ghost-button compact-button" for="customImage">上傳圖片</label>
+                <button id="createCustomCardBtn" class="primary-button" type="button">建立卡牌</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="section-band">
+            <div class="modifier-toolbar">
+              <div>
                 <h2>卡牌數值</h2>
-                <p>可以調整費用、攻擊、生命，或改寫短文字。留空文字會使用原本敘述。</p>
+                <p>可以調整費用、攻擊、生命、短文字與圖片。留空文字會使用原本敘述。</p>
               </div>
               <div class="field">
                 <label for="cardSearch">搜尋卡牌</label>
