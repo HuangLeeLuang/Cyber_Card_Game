@@ -1,8 +1,9 @@
 const data = window.CYBER_CARD_DATA;
 const STORAGE_KEY = "cyberCardGameMods";
 const ART_ATLASES = {
-  1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1.02, image: "url(assets/card-art-atlas.png)" },
-  2: { columns: 10, rows: 7, ratio: "7 / 10", zoom: 1.04, image: "url(assets/card-art-atlas-2.png)" },
+  1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas.png)" },
+  2: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-2.png)" },
+  3: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-3.png)" },
 };
 const ruleFields = [
   ["deckSize", "牌組張數", 8, 30],
