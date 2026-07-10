@@ -2582,7 +2582,7 @@ function getMaxCopies(card) {
 function getArtStyle(card) {
   const customArt = sanitizeCustomImage(card?.customArt);
   if (customArt) {
-    return `--art-image:url("${escapeCssUrl(customArt)}");--art-size:cover;--art-x:center;--art-y:center;--art-ratio:1 / 1;`;
+    return `--art-image:url('${escapeCssUrl(customArt)}');--art-size:cover;--art-x:center;--art-y:center;--art-ratio:1 / 1;`;
   }
   const art = Number.isFinite(card?.art) ? card.art : 0;
   const atlas = ART_ATLASES[card?.atlas || 1] || ART_ATLASES[1];
