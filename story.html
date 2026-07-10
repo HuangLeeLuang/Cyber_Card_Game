@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>賽博牌局劇情模式</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backdrop" aria-hidden="true"></div>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">CC</span>
+          <div>
+            <h1>賽博牌局劇情</h1>
+            <p>從第一張牌開始，逐步熟悉規則</p>
+          </div>
+        </div>
+        <nav class="view-tabs site-nav" aria-label="網站導覽">
+          <a class="tab-link" href="index.html">遊戲</a>
+          <a class="tab-link active" href="story.html">劇情</a>
+          <a class="tab-link" href="modifier.html">修改器</a>
+          <a class="tab-link" href="guide.html">攻略</a>
+        </nav>
+      </header>
+
+      <div class="page-grid">
+        <section class="content-panel">
+          <div class="section-band story-overview">
+            <h2>王冠序章</h2>
+            <p>
+              這個模式會從最簡單的單位、攻擊、守衛開始教起。每一場都可以重新構排牌組；先看提示，再按「進入配牌」回到牌組頁準備戰鬥。
+            </p>
+            <div class="button-row">
+              <button id="continueStoryBtn" class="primary-button">繼續目前關卡</button>
+              <button id="resetStoryBtn" class="ghost-button">重置劇情進度</button>
+            </div>
+          </div>
+
+          <div id="chapterList" class="story-chapters"></div>
+        </section>
+
+        <aside class="section-band story-side">
+          <h2>教學提示</h2>
+          <div id="storyProgressSummary"></div>
+          <ul>
+            <li>每場都先回到配牌頁，可按快速配牌，也可自己調整。</li>
+            <li>前兩章敵人生命較低，重點是熟悉規則，不是刁難玩家。</li>
+            <li>章節最後一場勝利會顯示破關圖片。</li>
+            <li>最後一關勝利會顯示完整通關恭喜圖片。</li>
+          </ul>
+        </aside>
+      </div>
+    </main>
+    <script src="story.js"></script>
+  </body>
+</html>

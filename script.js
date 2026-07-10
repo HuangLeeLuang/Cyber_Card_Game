@@ -1155,6 +1155,8 @@ const DEFAULT_RULES = {
 };
 const ACTIVE_MODS = loadStoredMods();
 const ACTIVE_RULES = ACTIVE_MODS.rules;
+const STORY_ACTIVE_KEY = "cyberStoryBattle";
+const STORY_PROGRESS_KEY = "cyberStoryProgress";
 
 applyStoredCardMods(ACTIVE_MODS.cards);
 
@@ -1179,6 +1181,7 @@ let deckCounts = {};
 let unitSeq = 1;
 let luxurySeq = 1;
 let game = null;
+let activeStoryBattle = null;
 
 const elements = {};
 
@@ -1186,6 +1189,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!document.querySelector("#cardLibrary")) return;
   cacheElements();
   bindStaticEvents();
+  activeStoryBattle = loadActiveStoryBattle();
   loadDeck();
   renderBuilder();
   showView("builder");
@@ -1230,6 +1234,8 @@ function cacheElements() {
   elements.actionPanel = document.querySelector("#actionPanel");
   elements.gameLog = document.querySelector("#gameLog");
   elements.playReveal = document.querySelector("#playReveal");
+  elements.storyBattleBanner = document.querySelector("#storyBattleBanner");
+  elements.storyResult = document.querySelector("#storyResult");
 }
 
 function bindStaticEvents() {
@@ -1312,6 +1318,22 @@ function applyStoredCardMods(cardMods) {
   });
 }
 
+function loadActiveStoryBattle() {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    const battle = JSON.parse(localStorage.getItem(STORY_ACTIVE_KEY) || "null");
+    if (!battle || !battle.id || !Array.isArray(battle.enemyDeck)) return null;
+    return battle;
+  } catch {
+    return null;
+  }
+}
+
+function clearActiveStoryBattle() {
+  activeStoryBattle = null;
+  if (typeof localStorage !== "undefined") localStorage.removeItem(STORY_ACTIVE_KEY);
+}
+
 function clampInt(value, min, max, fallback) {
   const number = Number.parseInt(value, 10);
   if (!Number.isFinite(number)) return fallback;
@@ -1341,9 +1363,33 @@ function saveDeck() {
 }
 
 function renderBuilder() {
+  renderStoryBattleBanner();
   renderOperators();
   renderLibrary();
   renderDeckList();
+}
+
+function renderStoryBattleBanner() {
+  if (!elements.storyBattleBanner) return;
+  if (!activeStoryBattle) {
+    elements.storyBattleBanner.hidden = true;
+    elements.storyBattleBanner.innerHTML = "";
+    return;
+  }
+
+  elements.storyBattleBanner.hidden = false;
+  elements.storyBattleBanner.innerHTML = `
+    <div>
+      <span class="story-status">劇情戰鬥</span>
+      <h2>${activeStoryBattle.chapterTitle}／${activeStoryBattle.battleTitle}</h2>
+      <p>${activeStoryBattle.intro}</p>
+      <strong>${activeStoryBattle.hint}</strong>
+    </div>
+    <div class="story-banner-actions">
+      <span>${activeStoryBattle.ruleText}</span>
+      <a class="ghost-button" href="story.html">回劇情地圖</a>
+    </div>
+  `;
 }
 
 function renderOperators() {
@@ -1585,8 +1631,9 @@ function startGame() {
   if (getDeckTotal() !== DECK_SIZE) return;
   unitSeq = 1;
   luxurySeq = 1;
+  activeStoryBattle = loadActiveStoryBattle();
   const playerDeck = expandDeck(deckCounts);
-  const aiDeck = buildAiDeck();
+  const aiDeck = activeStoryBattle ? buildStoryAiDeck(activeStoryBattle) : buildAiDeck();
 
   game = {
     turn: "player",
@@ -1598,15 +1645,32 @@ function startGame() {
     impacts: [],
     impactTimer: null,
     log: [],
+    storyBattle: activeStoryBattle ? { ...activeStoryBattle } : null,
+    storyResolved: false,
+    storyResult: null,
     player: createPlayer("你", "player", selectedOperator, playerDeck),
-    ai: createPlayer("對手", "ai", "corp", aiDeck),
+    ai: createPlayer(
+      activeStoryBattle?.enemyName || "對手",
+      "ai",
+      activeStoryBattle?.enemyOperator || "corp",
+      aiDeck,
+    ),
   };
+
+  if (activeStoryBattle) {
+    game.ai.life = activeStoryBattle.enemyLife || STARTING_LIFE;
+    game.ai.shield = activeStoryBattle.enemyShield || 0;
+  }
 
   drawCards(game.player, OPENING_HAND, false);
   drawCards(game.ai, OPENING_HAND, false);
   game.player.maxEnergy = 1;
   game.player.energy = 1;
   addLog(`你選擇了 ${OPERATORS[selectedOperator].name}。`);
+  if (activeStoryBattle) {
+    addLog(`劇情關卡：${activeStoryBattle.battleTitle}。`);
+    addLog(activeStoryBattle.hint);
+  }
   addLog("起手完成，可以保留或重抽一次。");
   showView("game");
   renderGame();
@@ -1638,6 +1702,10 @@ function buildAiDeck() {
     "orbital_estate",
     "corporate_yacht",
   ]);
+}
+
+function buildStoryAiDeck(battle) {
+  return shuffle((battle.enemyDeck || []).filter((id) => CARD_BY_ID[id]));
 }
 
 function createPlayer(name, side, operatorId, deck) {
@@ -1681,13 +1749,15 @@ function renderGame() {
   renderTurnBar();
   renderActionPanel();
   renderLog();
+  renderStoryResult();
   bindGameTargets();
 }
 
 function renderHero(container, player) {
   const operator = OPERATORS[player.operatorId];
+  const heroTitle = game?.storyBattle && player.side === "ai" ? player.name : operator.name;
   container.innerHTML = `
-    <h2>${operator.name}</h2>
+    <h2>${heroTitle}</h2>
     <div class="hero-stats">
       <div class="hero-stat"><span>生命</span><strong>${player.life}</strong></div>
       <div class="hero-stat"><span>護盾</span><strong>${player.shield}</strong></div>
@@ -1933,9 +2003,13 @@ function renderActionPanel() {
       <div class="notice">${game.player.life > 0 ? "勝利" : "敗北"}。這局結束了。</div>
       <button class="primary-button" id="rematchBtn">再打一場</button>
       <button class="ghost-button" id="backToBuilderBtn">回配牌</button>
+      ${game.storyBattle ? `<button class="ghost-button" id="storyMapBtn">回劇情地圖</button>` : ""}
     `;
     document.querySelector("#rematchBtn").addEventListener("click", startGame);
     document.querySelector("#backToBuilderBtn").addEventListener("click", () => showView("builder"));
+    document.querySelector("#storyMapBtn")?.addEventListener("click", () => {
+      window.location.href = "story.html";
+    });
     return;
   }
 
@@ -1979,9 +2053,48 @@ function renderActionPanel() {
 
   elements.actionPanel.innerHTML = `
     <div class="notice">
-      奢侈品現在是裝備牌：可放在操作者或友方單位上，之後也能變現。
+      ${game.storyBattle ? game.storyBattle.hint : "奢侈品現在是裝備牌：可放在操作者或友方單位上，之後也能變現。"}
     </div>
   `;
+}
+
+function renderStoryResult() {
+  if (!elements.storyResult) return;
+  const result = game?.storyResult;
+  if (!result || !game.gameOver || game.player.life <= 0) {
+    elements.storyResult.hidden = true;
+    elements.storyResult.innerHTML = "";
+    return;
+  }
+
+  elements.storyResult.hidden = false;
+  elements.storyResult.innerHTML = `
+    <section class="story-result-panel">
+      <div class="story-result-art" style="${getStoryClearStyle(result.image)}" aria-hidden="true"></div>
+      <div class="story-result-copy">
+        <span class="story-status">${result.final ? "最終通關" : "章節破關"}</span>
+        <h2>${result.title}</h2>
+        <p>${result.copy}</p>
+        <div class="button-row">
+          <button id="storyResultMapBtn" class="primary-button">回劇情地圖</button>
+          <button id="storyResultCloseBtn" class="ghost-button">留在牌局</button>
+        </div>
+      </div>
+    </section>
+  `;
+  document.querySelector("#storyResultMapBtn").addEventListener("click", () => {
+    window.location.href = "story.html";
+  });
+  document.querySelector("#storyResultCloseBtn").addEventListener("click", () => {
+    game.storyResult = null;
+    renderStoryResult();
+  });
+}
+
+function getStoryClearStyle(index = 0) {
+  const col = index % 2;
+  const row = Math.floor(index / 2);
+  return `--story-art-x:${col * 100}%;--story-art-y:${row * 100}%;`;
 }
 
 function renderLog() {
@@ -2945,9 +3058,45 @@ function checkGameOver() {
     game.pending = null;
     game.selectedAttacker = null;
     addLog(game.player.life > 0 ? "你贏得了這場牌局。" : "對手贏得了這場牌局。");
+    if (game.player.life > 0) completeStoryBattle();
     return true;
   }
   return false;
+}
+
+function completeStoryBattle() {
+  if (!game?.storyBattle || game.storyResolved) return;
+  game.storyResolved = true;
+  const battle = game.storyBattle;
+  const progress = loadStoryProgress();
+  progress.completed[battle.id] = true;
+  progress.lastCompleted = battle.id;
+
+  if (battle.clearBattle) {
+    progress.lastClear = {
+      title: battle.clearTitle,
+      copy: battle.clearCopy,
+      image: battle.clearImage,
+      final: Boolean(battle.finalBattle),
+    };
+    game.storyResult = { ...progress.lastClear };
+  }
+
+  localStorage.setItem(STORY_PROGRESS_KEY, JSON.stringify(progress));
+  clearActiveStoryBattle();
+}
+
+function loadStoryProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORY_PROGRESS_KEY) || "{}");
+    return {
+      completed: saved.completed || {},
+      lastCompleted: saved.lastCompleted || null,
+      lastClear: saved.lastClear || null,
+    };
+  } catch {
+    return { completed: {}, lastCompleted: null, lastClear: null };
+  }
 }
 
 function addLog(message) {

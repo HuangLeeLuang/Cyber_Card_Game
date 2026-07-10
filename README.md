@@ -11,6 +11,7 @@
 ## 頁面
 
 - `index.html`：遊戲本體
+- `story.html`：劇情模式，含新手教學、章節進度與破關圖片
 - `modifier.html`：修改器，可調整規則與卡牌數值
 - `guide.html`：攻略與推薦打法
 

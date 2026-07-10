@@ -21,12 +21,14 @@
         <nav class="view-tabs site-nav" aria-label="主要頁面">
           <button class="tab-button active" data-view="builder">配牌</button>
           <button class="tab-button" data-view="game">對戰</button>
+          <a class="tab-link" href="story.html">劇情</a>
           <a class="tab-link" href="modifier.html">修改器</a>
           <a class="tab-link" href="guide.html">攻略</a>
         </nav>
       </header>
 
       <section id="builderView" class="view active" aria-labelledby="builderTitle">
+        <div id="storyBattleBanner" class="story-battle-banner" hidden></div>
         <div class="builder-layout">
           <aside class="panel operator-panel">
             <div class="panel-heading">
@@ -115,6 +117,7 @@
         </div>
       </section>
     </main>
+    <div id="storyResult" class="story-result" hidden aria-live="polite"></div>
     <script src="script.js"></script>
   </body>
 </html>
