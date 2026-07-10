@@ -1,4 +1,39 @@
-const data = window.CYBER_CARD_DATA;
+const FALLBACK_CARD_TYPES = {
+  unit: "單位",
+  program: "程式",
+  mod: "改造",
+  luxury: "奢侈品",
+};
+const FALLBACK_FACTIONS = {
+  neutral: "中立",
+  merc: "街頭",
+  hacker: "駭客",
+  corp: "企業",
+};
+const FALLBACK_RULES = {
+  deckSize: 15,
+  maxBoard: 4,
+  maxOperatorLuxuries: 2,
+  maxDeckLuxuries: 4,
+  baseHandLimit: 7,
+  startingLife: 20,
+  maxEnergy: 5,
+  openingHand: 3,
+  drawPerTurn: 1,
+};
+const sourceData = window.CYBER_CARD_DATA || {};
+const data = {
+  cards: Array.isArray(sourceData.cards) ? sourceData.cards : [],
+  originalCards: Array.isArray(sourceData.originalCards)
+    ? sourceData.originalCards
+    : Array.isArray(sourceData.cards)
+      ? sourceData.cards
+      : [],
+  cardTypes:
+    sourceData.cardTypes && Object.keys(sourceData.cardTypes).length > 0 ? sourceData.cardTypes : FALLBACK_CARD_TYPES,
+  factions: sourceData.factions && Object.keys(sourceData.factions).length > 0 ? sourceData.factions : FALLBACK_FACTIONS,
+  defaultRules: { ...FALLBACK_RULES, ...(sourceData.defaultRules || {}) },
+};
 const STORAGE_KEY = "cyberCardGameMods";
 const ART_ATLASES = {
   1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas.png)" },
@@ -70,6 +105,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("#customImage").addEventListener("change", handleCustomImageUpload);
   document.querySelector("#customType").addEventListener("change", updateCustomFormState);
   document.querySelector("#customEffect").addEventListener("change", syncTargetFromEffect);
+  if (!sourceData.cards) {
+    setStatus("主遊戲資料尚未載入，仍可建立自製卡；若卡牌列表空白，請重新整理頁面。");
+  }
 });
 
 function loadMods() {
@@ -417,12 +455,13 @@ function collectMods() {
   const rules = {};
   ruleFields.forEach(([key, , min, max]) => {
     const input = document.querySelector(`[data-rule="${key}"]`);
-    rules[key] = clampInt(input.value, min, max, data.defaultRules[key]);
+    rules[key] = input ? clampInt(input.value, min, max, data.defaultRules[key]) : data.defaultRules[key];
   });
 
   const cards = {};
   document.querySelectorAll(".editor-card").forEach((node) => {
     const original = data.originalCards.find((card) => card.id === node.dataset.cardId);
+    if (!original) return;
     const cardMod = {};
     node.querySelectorAll("[data-card-field]").forEach((input) => {
       const field = input.dataset.cardField;

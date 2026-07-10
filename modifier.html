@@ -53,11 +53,21 @@
               </div>
               <div class="field">
                 <label for="customType">類型</label>
-                <select id="customType"></select>
+                <select id="customType">
+                  <option value="unit">單位</option>
+                  <option value="program">程式</option>
+                  <option value="mod">改造</option>
+                  <option value="luxury">奢侈品</option>
+                </select>
               </div>
               <div class="field">
                 <label for="customFaction">陣營</label>
-                <select id="customFaction"></select>
+                <select id="customFaction">
+                  <option value="neutral">中立</option>
+                  <option value="merc">街頭</option>
+                  <option value="hacker">駭客</option>
+                  <option value="corp">企業</option>
+                </select>
               </div>
               <div class="field">
                 <label for="customCost">費用</label>
@@ -73,7 +83,17 @@
               </div>
               <div class="field">
                 <label for="customEffect">效果</label>
-                <select id="customEffect"></select>
+                <select id="customEffect">
+                  <option value="">無額外效果</option>
+                  <option value="draw_1">抽 1 張牌</option>
+                  <option value="draw_2">抽 2 張牌</option>
+                  <option value="heal_hero_2">回復 2 生命</option>
+                  <option value="gain_shield_1">獲得 1 護盾</option>
+                  <option value="deal_2">造成 2 傷害</option>
+                  <option value="deal_3">造成 3 傷害</option>
+                  <option value="summon_1_1_guard">召喚 1/1 守衛</option>
+                  <option value="buff_1_1_ready">友方單位 +1/+1 並準備</option>
+                </select>
               </div>
               <div class="field">
                 <label for="customTarget">目標</label>
@@ -142,7 +162,7 @@
         </div>
       </section>
     </main>
-    <script src="script.js"></script>
-    <script src="modifier.js"></script>
+    <script src="script.js?v=modifier-20260710"></script>
+    <script src="modifier.js?v=modifier-20260710"></script>
   </body>
 </html>
