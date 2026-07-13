@@ -5,9 +5,9 @@ const STORY_CHAPTERS = [
   {
     id: "chapter-1",
     title: "第一章：地下牌局",
-    description: "先學會召喚單位、攻擊、處理守衛，再理解奢侈品裝備。",
+    description: "先學會召喚單位、攻擊、處理守衛，再理解奢侈品投資。",
     clearTitle: "地下牌局破關",
-    clearCopy: "你已經能完成基本出牌、攻擊與裝備。下一章會加入抽牌與目標法術。",
+    clearCopy: "你已經能完成基本出牌、攻擊與投資。下一章會加入抽牌與目標法術。",
     clearImage: 0,
     battles: [
       {
@@ -97,8 +97,8 @@ const STORY_CHAPTERS = [
         enemyName: "車庫莊家",
         enemyOperator: "merc",
         enemyLife: 12,
-        intro: "奢侈品可以裝備操作者，也可以裝到單位。裝單位通常比較快，裝操作者通常比較穩。",
-        hint: "提示：這場試著把奢侈品裝到單位上，必要時也可以變現。",
+        intro: "一般奢侈品會進入投資區，並在之後兩個己方回合自動產生收益。",
+        hint: "提示：投資區有空位時打出奢侈品，等待下回合查看收益。武器會直接裝備。",
         ruleText: "章節最終戰。勝利後會解鎖破關圖片。",
         clearBattle: true,
         clearImage: 0,
@@ -339,8 +339,8 @@ const STORY_CHAPTERS = [
         enemyOperator: "corp",
         enemyLife: 18,
         enemyShield: 3,
-        intro: "最後一戰會用到前面所有觀念：守衛、護盾、抽牌、奢侈品裝備與變現。",
-        hint: "提示：每回合先看敵方守衛，再決定要解場、鋪場，還是變現奢侈品收尾。",
+        intro: "最後一戰會用到前面所有觀念：守衛、護盾、抽牌、奢侈品投資與武器。",
+        hint: "提示：每回合先看敵方守衛，再決定要解場、鋪場，或提早投資累積收益。",
         ruleText: "最終戰。勝利後會顯示完整通關恭喜圖片。",
         clearBattle: true,
         finalBattle: true,

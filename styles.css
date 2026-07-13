@@ -1261,6 +1261,81 @@ p {
   margin-bottom: 14px;
 }
 
+.choice-buttons,
+.match-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hero-attack-button {
+  width: 100%;
+  min-height: 34px;
+  margin-top: 8px;
+  border-color: rgba(255, 222, 74, 0.5);
+  color: var(--yellow);
+  background: rgba(255, 222, 74, 0.08);
+  font-weight: 800;
+}
+
+.match-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.match-stats span {
+  display: grid;
+  padding: 7px 4px;
+  border: 1px solid rgba(126, 227, 255, 0.2);
+  border-radius: 5px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 0.7rem;
+}
+
+.match-stats strong {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.discard-panels {
+  display: grid;
+  gap: 6px;
+}
+
+.discard-view {
+  border: 1px solid rgba(126, 227, 255, 0.18);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.discard-view summary {
+  padding: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.discard-view summary span {
+  color: var(--yellow);
+  font-weight: 800;
+}
+
+.discard-list {
+  display: flex;
+  max-height: 120px;
+  padding: 0 8px 8px;
+  gap: 5px;
+  overflow: auto;
+  flex-wrap: wrap;
+}
+
+.discard-list span {
+  padding: 3px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
 .notice {
   border: 1px solid rgba(255, 222, 74, 0.22);
   border-radius: 8px;

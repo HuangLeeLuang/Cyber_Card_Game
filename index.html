@@ -10,7 +10,7 @@
     <title>賽博牌局</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="assets/app-icon-180.png" />
-    <link rel="stylesheet" href="styles.css?v=mobile-gauntlets-20260713" />
+    <link rel="stylesheet" href="styles.css?v=investment-weapons-20260714" />
   </head>
   <body>
     <div class="backdrop" aria-hidden="true"></div>
@@ -46,7 +46,7 @@
               <div><strong>牌組</strong><span>預設 15 張，可調整</span></div>
               <div><strong>同名</strong><span>最多 2 張</span></div>
               <div><strong>奢侈品</strong><span>預設最多 4 張</span></div>
-              <div><strong>裝備</strong><span>角色與單位皆可裝備</span></div>
+              <div><strong>投資</strong><span>每回合自動產生收益</span></div>
             </div>
             <div class="button-row">
               <button id="quickBuildBtn" class="primary-button">快速配牌</button>
@@ -120,12 +120,22 @@
               <span>牌局紀錄</span>
             </div>
             <div id="gameLog" class="game-log"></div>
+            <div class="discard-panels">
+              <details class="discard-view">
+                <summary>我方棄牌 <span id="playerDiscardCount">0</span></summary>
+                <div id="playerDiscardList" class="discard-list"></div>
+              </details>
+              <details class="discard-view">
+                <summary>敵方棄牌 <span id="aiDiscardCount">0</span></summary>
+                <div id="aiDiscardList" class="discard-list"></div>
+              </details>
+            </div>
           </aside>
         </div>
       </section>
     </main>
     <div id="storyResult" class="story-result" hidden aria-live="polite"></div>
-    <script src="script.js?v=unit-balance-webp-20260713"></script>
+    <script src="script.js?v=investment-weapons-20260714b"></script>
     <script src="pwa.js"></script>
   </body>
 </html>

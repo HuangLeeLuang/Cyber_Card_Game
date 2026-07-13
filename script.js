@@ -20,6 +20,8 @@ const OPERATORS = {
     skillName: "火力壓制",
     skillCost: 2,
     skillText: "造成 1 點傷害；本回合打出奢侈品後改為 2 點。",
+    passiveName: "街頭氣勢",
+    passiveText: "每回合第一個召喚的單位 +1 攻擊。",
   },
   hacker: {
     id: "hacker",
@@ -28,6 +30,8 @@ const OPERATORS = {
     skillName: "資料竊取",
     skillCost: 2,
     skillText: "抽 1 張牌。",
+    passiveName: "零日捷徑",
+    passiveText: "每回合第一張程式費用 -1。",
   },
   corp: {
     id: "corp",
@@ -36,6 +40,8 @@ const OPERATORS = {
     skillName: "信用護盾",
     skillCost: 2,
     skillText: "獲得 2 點護盾。",
+    passiveName: "資本緩衝",
+    passiveText: "每回合第一次獲得護盾時額外 +1。",
   },
 };
 
@@ -1899,36 +1905,69 @@ CARDS.push(
 CARDS.push(
   {
     id: "chrome_rush_gauntlet",
-    name: "鉻鋼疾襲拳套",
+    name: "碳鉻震動刀",
     type: "luxury",
     faction: "neutral",
     cost: 2,
     atlas: 5,
     art: 24,
-    text: "裝備單位：+1 攻擊並可立即攻擊。裝備操作者：每回合第一個單位可立即攻擊。變現：本回合獲得 2 能量。",
+    text: "武器。打出後自動裝備操作者。2 攻擊／3 耐久。",
     cashText: "本回合獲得 2 能量。",
   },
   {
     id: "aegis_guard_gauntlet",
-    name: "神盾護衛拳套",
+    name: "神盾磁軌手槍",
     type: "luxury",
     faction: "corp",
     cost: 3,
     atlas: 5,
     art: 25,
-    text: "裝備單位：+1/+1。裝備操作者：每回合第一次受到的英雄傷害 -1。變現：獲得 3 護盾。",
+    text: "武器。打出後自動裝備操作者。2 攻擊／3 耐久。",
     cashText: "獲得 3 護盾。",
   },
   {
     id: "cipher_pulse_gauntlet",
-    name: "密碼脈衝拳套",
+    name: "密碼脈衝步槍",
     type: "luxury",
     faction: "hacker",
     cost: 2,
     atlas: 5,
     art: 26,
-    text: "裝備單位：+0/+1。裝備操作者：若你沒有手牌，回合開始抽 1 張牌。變現：抽 1 張牌，下一張牌費用 -1。",
+    text: "武器。打出後自動裝備操作者。2 攻擊／3 耐久。",
     cashText: "抽 1 張牌，下一張牌費用 -1。",
+  },
+  {
+    id: "meteor_fist_gauntlet",
+    name: "隕火重機槍",
+    type: "luxury",
+    faction: "merc",
+    cost: 3,
+    atlas: 5,
+    art: 27,
+    text: "武器。打出後自動裝備操作者。3 攻擊／2 耐久。",
+    cashText: "對敵方操作者造成 2 點傷害。",
+  },
+  {
+    id: "ghost_key_gauntlet",
+    name: "幽鑰狙擊槍",
+    type: "luxury",
+    faction: "hacker",
+    cost: 2,
+    atlas: 5,
+    art: 28,
+    text: "武器。打出後自動裝備操作者。3 攻擊／1 耐久。",
+    cashText: "抽 2 張牌。",
+  },
+  {
+    id: "sovereign_gauntlet",
+    name: "主權晶盾拳套",
+    type: "luxury",
+    faction: "corp",
+    cost: 3,
+    atlas: 5,
+    art: 29,
+    text: "武器。打出後自動裝備操作者。2 攻擊／2 耐久。",
+    cashText: "獲得 4 點護盾。",
   },
 );
 
@@ -2096,6 +2135,21 @@ CARDS.forEach((card) => {
   if (fix) Object.assign(card, fix);
 });
 
+const WEAPON_CARD_IDS = new Set([
+  "chrome_rush_gauntlet",
+  "aegis_guard_gauntlet",
+  "cipher_pulse_gauntlet",
+  "meteor_fist_gauntlet",
+  "ghost_key_gauntlet",
+  "sovereign_gauntlet",
+]);
+
+CARDS.forEach((card) => {
+  if (card.type === "luxury" && !WEAPON_CARD_IDS.has(card.id)) {
+    card.text = "投資：打出後進入投資區；從下個己方回合開始觸發收益，共 2 次。";
+  }
+});
+
 const DEFAULT_RULES = {
   deckSize: 15,
   maxBoard: 4,
@@ -2131,7 +2185,15 @@ const ART_ATLASES = {
   2: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-2.webp)" },
   3: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-3.webp)" },
   4: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-4.webp)" },
-  5: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-5.webp)" },
+  5: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-5.webp?v=weapons-20260714)" },
+};
+const OPERATOR_WEAPONS = {
+  chrome_rush_gauntlet: { type: "刀", attack: 2, durability: 3 },
+  aegis_guard_gauntlet: { type: "手槍", attack: 2, durability: 3 },
+  cipher_pulse_gauntlet: { type: "步槍", attack: 2, durability: 3 },
+  meteor_fist_gauntlet: { type: "機槍", attack: 3, durability: 2 },
+  ghost_key_gauntlet: { type: "狙擊槍", attack: 3, durability: 1 },
+  sovereign_gauntlet: { type: "拳套", attack: 2, durability: 2 },
 };
 
 let selectedOperator = "merc";
@@ -2193,6 +2255,10 @@ function cacheElements() {
   elements.endTurnBtn = document.querySelector("#endTurnBtn");
   elements.actionPanel = document.querySelector("#actionPanel");
   elements.gameLog = document.querySelector("#gameLog");
+  elements.playerDiscardCount = document.querySelector("#playerDiscardCount");
+  elements.aiDiscardCount = document.querySelector("#aiDiscardCount");
+  elements.playerDiscardList = document.querySelector("#playerDiscardList");
+  elements.aiDiscardList = document.querySelector("#aiDiscardList");
   elements.playReveal = document.querySelector("#playReveal");
   elements.storyBattleBanner = document.querySelector("#storyBattleBanner");
   elements.storyResult = document.querySelector("#storyResult");
@@ -2464,6 +2530,8 @@ function renderOperators() {
   elements.operatorDetail.innerHTML = `
     <strong>${operator.skillName}</strong>
     <span>${operator.skillCost} 能量：${operator.skillText}</span>
+    <strong>${operator.passiveName}</strong>
+    <span>${operator.passiveText}</span>
   `;
 }
 
@@ -2516,7 +2584,7 @@ function renderCatalogCard(card) {
 
 function renderCardStats(card) {
   if (card.type !== "unit") {
-    return `<span class="type-chip">${card.type === "luxury" ? "裝備 / 變現" : "即時效果"}</span>`;
+    return `<span class="type-chip">${card.type === "luxury" ? (OPERATOR_WEAPONS[card.id] ? "武器" : "投資") : "即時效果"}</span>`;
   }
   return `
     <div class="stats">
@@ -2606,7 +2674,7 @@ function quickBuildDeck() {
       "reflex_chip",
       "aurora_hypercar",
       "phantom_sneakers",
-      "private_airship",
+      "meteor_fist_gauntlet",
     ],
     hacker: [
       "cipher_urchin",
@@ -2623,7 +2691,7 @@ function quickBuildDeck() {
       "cloaking_loop",
       "holo_art_vault",
       "crypto_timepiece",
-      "obsidian_bag",
+      "ghost_key_gauntlet",
     ],
     corp: [
       "compliance_sentinel",
@@ -2640,7 +2708,7 @@ function quickBuildDeck() {
       "prestige_protocol",
       "sky_penthouse",
       "orbital_estate",
-      "corporate_yacht",
+      "sovereign_gauntlet",
     ],
   };
 
@@ -2707,12 +2775,15 @@ function startGame() {
   const playerDeck = expandDeck(deckCounts);
   const aiDeck = activeStoryBattle ? buildStoryAiDeck(activeStoryBattle) : buildAiDeck();
 
+  const firstSide = Math.random() < 0.5 ? "player" : "ai";
   game = {
-    turn: "player",
+    turn: firstSide,
+    firstSide,
     awaitMulligan: true,
     gameOver: false,
     pending: null,
     selectedAttacker: null,
+    selectedHeroAttack: false,
     revealing: false,
     impacts: [],
     impactTimer: null,
@@ -2736,13 +2807,18 @@ function startGame() {
 
   drawCards(game.player, OPENING_HAND, false);
   drawCards(game.ai, OPENING_HAND, false);
-  game.player.maxEnergy = 1;
-  game.player.energy = 1;
+  const firstPlayer = getPlayerBySide(firstSide);
+  firstPlayer.maxEnergy = 1;
+  firstPlayer.energy = 1;
+  game.player.batteryAvailable = firstSide === "ai";
+  game.ai.batteryAvailable = firstSide === "player";
+  if (firstSide === "player") game.player.stats.turns = 1;
   addLog(`你選擇了 ${OPERATORS[selectedOperator].name}。`);
   if (activeStoryBattle) {
     addLog(`劇情關卡：${activeStoryBattle.battleTitle}。`);
     addLog(activeStoryBattle.hint);
   }
+  addLog(`${firstSide === "player" ? "你" : "對手"}取得先手；後手獲得一枚備用電池。`);
   addLog("起手完成，可以保留或重抽一次。");
   showView("game");
   renderGame();
@@ -2792,10 +2868,12 @@ function createPlayer(name, side, operatorId, deck) {
     board: [],
     luxuries: [],
     discard: [],
+    batteryAvailable: false,
     maxEnergy: 0,
     energy: 0,
     nextDiscount: 0,
     skillUsed: false,
+    stats: { turns: 0, cardsPlayed: 0, heroDamage: 0, luxuriesEquipped: 0, luxuriesCashed: 0 },
     flags: createTurnFlags(),
   };
 }
@@ -2806,6 +2884,8 @@ function createTurnFlags() {
     firstProgramPlayed: false,
     playedLuxuryThisTurn: false,
     jacketUsed: false,
+    operatorPassiveUsed: false,
+    heroAttacked: false,
   };
 }
 
@@ -2828,6 +2908,7 @@ function renderGame() {
 function renderHero(container, player) {
   const operator = OPERATORS[player.operatorId];
   const heroTitle = game?.storyBattle && player.side === "ai" ? player.name : operator.name;
+  const equippedWeapon = findOperatorWeapon(player);
   container.innerHTML = `
     <h2>${heroTitle}</h2>
     <div class="hero-stats">
@@ -2836,6 +2917,13 @@ function renderHero(container, player) {
       <div class="hero-stat"><span>能量</span><strong>${player.energy} / ${player.maxEnergy}</strong></div>
       <div class="hero-stat"><span>牌庫</span><strong>${player.deck.length}</strong></div>
     </div>
+    ${
+      equippedWeapon
+        ? `<button class="hero-attack-button" data-hero-attack="${player.side}" ${canHeroAttack(player) ? "" : "disabled"}>
+            ${equippedWeapon.weapon.type} ${equippedWeapon.weapon.attack}／${equippedWeapon.attachment.durability}
+          </button>`
+        : ""
+    }
   `;
   container.classList.toggle("targetable", isTargetNodeLegal({ kind: "hero", owner: player.side }));
   container.classList.toggle("impact-shake", hasImpact("hero", player.side));
@@ -2880,32 +2968,29 @@ function renderUnit(unit, player) {
   `;
 }
 
-function renderAttachedLuxury(attachment, card, canCash) {
+function renderAttachedLuxury(attachment, card) {
   return `
     <div class="attached-luxury">
       <span>裝備：${card.name}</span>
-      ${canCash ? `<button class="cash-button" data-cash-luxury="${attachment.uid}">變現</button>` : ""}
     </div>
   `;
 }
 
 function renderOperatorLuxuries(container, player) {
   const slots = [...player.luxuries];
-  while (slots.length < MAX_OPERATOR_LUXURIES) slots.push(null);
+  while (slots.length < MAX_OPERATOR_LUXURIES + 1) slots.push(null);
   container.classList.toggle("impact-zone", hasImpact("luxury", player.side));
   container.innerHTML = slots
     .map((luxury) => {
-      if (!luxury) return `<div class="empty-slot">角色裝備空位</div>`;
+      if (!luxury) return `<div class="empty-slot">投資／武器空位</div>`;
       const card = CARD_BY_ID[luxury.cardId];
-      const canCash = player.side === "player" && canPlayerAct();
       return `
         <div class="luxury-card" data-type="luxury" style="${getArtStyle(card)}">
           <div class="luxury-thumb" aria-hidden="true"></div>
           <div class="luxury-copy">
             <strong>${card.name}</strong>
-            <p>${card.cashText}</p>
+            <p>${getLuxuryStatus(luxury, card)}</p>
           </div>
-          ${canCash ? `<button class="cash-button" data-cash-luxury="${luxury.uid}">變現</button>` : ""}
         </div>
       `;
     })
@@ -3059,6 +3144,8 @@ function renderTurnBar() {
     elements.turnStatus.textContent = "選擇裝備或效果目標";
   } else if (game.selectedAttacker) {
     elements.turnStatus.textContent = "選擇攻擊目標";
+  } else if (game.selectedHeroAttack) {
+    elements.turnStatus.textContent = "選擇武器攻擊目標";
   } else {
     elements.turnStatus.textContent = game.turn === "player" ? "你的回合" : "對手回合";
   }
@@ -3071,8 +3158,16 @@ function renderActionPanel() {
   }
 
   if (game.gameOver) {
+    const stats = game.player.stats;
     elements.actionPanel.innerHTML = `
       <div class="notice">${game.player.life > 0 ? "勝利" : "敗北"}。這局結束了。</div>
+      <div class="match-stats">
+        <span><strong>${stats.turns}</strong>回合</span>
+        <span><strong>${stats.cardsPlayed}</strong>出牌</span>
+        <span><strong>${stats.heroDamage}</strong>傷害</span>
+        <span><strong>${stats.luxuriesEquipped}</strong>裝備</span>
+        <span><strong>${stats.luxuriesCashed}</strong>投資收益</span>
+      </div>
       <button class="primary-button" id="rematchBtn">再打一場</button>
       <button class="ghost-button" id="backToBuilderBtn">回配牌</button>
       ${game.storyBattle ? `<button class="ghost-button" id="storyMapBtn">回劇情地圖</button>` : ""}
@@ -3103,10 +3198,7 @@ function renderActionPanel() {
       <div class="notice">正在使用「${CARD_BY_ID[game.pending.cardId].name}」，請點選合法目標。</div>
       <button class="ghost-button" id="cancelPendingBtn">取消</button>
     `;
-    document.querySelector("#cancelPendingBtn").addEventListener("click", () => {
-      game.pending = null;
-      renderGame();
-    });
+    document.querySelector("#cancelPendingBtn").addEventListener("click", cancelPendingAction);
     return;
   }
 
@@ -3125,9 +3217,11 @@ function renderActionPanel() {
 
   elements.actionPanel.innerHTML = `
     <div class="notice">
-      ${game.storyBattle ? game.storyBattle.hint : "奢侈品現在是裝備牌：可放在操作者或友方單位上，之後也能變現。"}
+      ${game.storyBattle ? game.storyBattle.hint : "奢侈品會自動投資並在之後的回合產生收益；武器則自動裝備。"}
     </div>
+    ${game.player.batteryAvailable ? `<button class="primary-button" id="backupBatteryBtn">使用備用電池 · +1 能量</button>` : ""}
   `;
+  document.querySelector("#backupBatteryBtn")?.addEventListener("click", () => useBackupBattery(game.player));
 }
 
 function renderStoryResult() {
@@ -3171,6 +3265,20 @@ function getStoryClearStyle(index = 0) {
 
 function renderLog() {
   elements.gameLog.innerHTML = game.log.map((line) => `<div class="log-line">${line}</div>`).join("");
+  renderDiscard(game.player, elements.playerDiscardCount, elements.playerDiscardList);
+  renderDiscard(game.ai, elements.aiDiscardCount, elements.aiDiscardList);
+}
+
+function renderDiscard(player, countElement, listElement) {
+  if (!countElement || !listElement) return;
+  countElement.textContent = player.discard.length;
+  listElement.innerHTML = player.discard.length
+    ? player.discard
+        .slice()
+        .reverse()
+        .map((id) => `<span>${CARD_BY_ID[id]?.name || "衍生單位"}</span>`)
+        .join("")
+    : `<span class="muted-copy">尚無棄牌</span>`;
 }
 
 function bindGameTargets() {
@@ -3191,12 +3299,22 @@ function bindGameTargets() {
       handleTargetClick(target);
     });
   });
+
+  document.querySelectorAll("[data-hero-attack]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (button.dataset.heroAttack !== "player" || !canHeroAttack(game.player)) return;
+      game.selectedAttacker = null;
+      game.selectedHeroAttack = true;
+      renderGame();
+    });
+  });
 }
 
 function keepOpeningHand() {
   game.awaitMulligan = false;
   addLog("你保留了起手。");
-  renderGame();
+  beginBattleAfterMulligan();
 }
 
 function mulliganHand() {
@@ -3206,6 +3324,19 @@ function mulliganHand() {
   drawCards(game.player, OPENING_HAND, false);
   game.awaitMulligan = false;
   addLog("你重抽了起手。");
+  beginBattleAfterMulligan();
+}
+
+function beginBattleAfterMulligan() {
+  renderGame();
+  if (game.firstSide === "ai") window.setTimeout(() => runAiTurn(true), 450);
+}
+
+function useBackupBattery(player) {
+  if (!player?.batteryAvailable || game.turn !== player.side || game.gameOver) return;
+  player.batteryAvailable = false;
+  player.energy += 1;
+  addLog(`${player.name}使用備用電池，獲得 1 能量。`);
   renderGame();
 }
 
@@ -3226,6 +3357,33 @@ async function playCardFromHand(handIndex) {
   await playCardWithReveal(game.player, game.ai, handIndex, null);
 }
 
+function findOperatorWeapon(player) {
+  for (const attachment of player.luxuries) {
+    const weapon = OPERATOR_WEAPONS[attachment.cardId];
+    if (weapon) return { attachment, weapon };
+  }
+  return null;
+}
+
+function getLuxuryStatus(attachment, card) {
+  const weapon = OPERATOR_WEAPONS[card.id];
+  if (weapon) return `${weapon.type} ${weapon.attack} 攻擊／${attachment.durability} 耐久`;
+  return `投資中｜剩餘 ${attachment.turnsLeft} 次收益`;
+}
+
+function canHeroAttack(player) {
+  return Boolean(
+    findOperatorWeapon(player) &&
+      !player.flags.heroAttacked &&
+      (player.side !== "player" || canPlayerAct()),
+  );
+}
+
+function cancelPendingAction() {
+  game.pending = null;
+  renderGame();
+}
+
 async function playCardWithReveal(owner, opponent, handIndex, target) {
   const cardId = owner.hand[handIndex];
   const card = CARD_BY_ID[cardId];
@@ -3238,6 +3396,7 @@ async function handleTargetClick(target) {
   if (!canPlayerAct()) return;
 
   if (game.pending) {
+    if (game.pending.type !== "playCard") return;
     const card = CARD_BY_ID[game.pending.cardId];
     if (!isLegalCardTarget(card, game.player, game.ai, target)) return;
     const handIndex = game.pending.handIndex;
@@ -3250,6 +3409,25 @@ async function handleTargetClick(target) {
   if (game.selectedAttacker) {
     if (!isLegalAttackTarget(game.player, game.ai, target)) return;
     resolveAttack(game.player, game.ai, game.selectedAttacker, target);
+    return;
+  }
+
+  if (game.selectedHeroAttack) {
+    elements.actionPanel.innerHTML = `
+      <div class="notice">操作者準備使用武器攻擊。</div>
+      <button class="ghost-button" id="cancelHeroAttackBtn">取消</button>
+    `;
+    document.querySelector("#cancelHeroAttackBtn").addEventListener("click", () => {
+      game.selectedHeroAttack = false;
+      renderGame();
+    });
+    return;
+  }
+
+
+  if (game.selectedHeroAttack) {
+    if (!isLegalAttackTarget(game.player, game.ai, target)) return;
+    resolveHeroAttack(game.player, game.ai, target);
     return;
   }
 
@@ -3270,14 +3448,15 @@ function resolvePlayCard(owner, opponent, handIndex, target) {
   owner.energy -= cost;
   consumeDiscount(owner);
   owner.hand.splice(handIndex, 1);
-  owner.discard.push(card.id);
+  owner.stats.cardsPlayed += 1;
 
   let summonedUnit = null;
   if (card.type === "unit") {
     summonedUnit = summonUnit(owner, opponent, card);
   } else if (card.type === "luxury") {
-    attachLuxury(owner, card, target);
+    placeLuxury(owner, opponent, card);
   } else {
+    owner.discard.push(card.id);
     if (card.type === "program") owner.flags.firstProgramPlayed = true;
     applyCardEffect(card, owner, opponent, target);
     addLog(`${owner.name}使用「${card.name}」。`);
@@ -3307,6 +3486,11 @@ function summonUnit(owner, opponent, card) {
     frozenTurns: 0,
     luxury: null,
   };
+
+  if (owner.operatorId === "merc" && !owner.flags.firstUnitPlayed) {
+    unit.attack += 1;
+    addLog(`街頭氣勢讓「${card.name}」攻擊 +1。`);
+  }
 
   if (
     (hasOperatorLuxury(owner, "cyber_car") ||
@@ -3338,28 +3522,53 @@ function summonUnit(owner, opponent, card) {
   return unit;
 }
 
-function attachLuxury(owner, card, target) {
-  if (!target) return;
+function placeLuxury(owner, opponent, card) {
   const attachment = {
     uid: `l${luxurySeq++}`,
     cardId: card.id,
-    host: target.kind,
-    unitUid: target.kind === "unit" ? target.uid : null,
-    bonus: null,
+    host: "hero",
   };
 
-  if (target.kind === "hero") {
+  const weapon = OPERATOR_WEAPONS[card.id];
+  if (weapon) {
+    const equipped = findOperatorWeapon(owner);
+    if (equipped) {
+      owner.luxuries = owner.luxuries.filter((item) => item.uid !== equipped.attachment.uid);
+      owner.discard.push(equipped.attachment.cardId);
+      addLog(`${owner.name}卸下「${CARD_BY_ID[equipped.attachment.cardId].name}」。`);
+    }
+    attachment.durability = weapon.durability;
+    attachment.kind = "weapon";
     owner.luxuries.push(attachment);
-    addLog(`${owner.name}把「${card.name}」裝備到操作者。`);
+    owner.stats.luxuriesEquipped += 1;
+    addLog(`${owner.name}裝備「${card.name}」。`);
   } else {
-    const unit = owner.board.find((item) => item.uid === target.uid);
-    if (!unit || unit.luxury) return;
-    attachment.bonus = applyLuxuryUnitBonus(unit, card.id);
-    unit.luxury = attachment;
-    addLog(`${owner.name}把「${card.name}」裝備到「${unit.name}」。`);
+    attachment.kind = "investment";
+    attachment.turnsLeft = 2;
+    owner.luxuries.push(attachment);
+    addLog(`${owner.name}投資「${card.name}」，將產生 2 次收益。`);
   }
 
   owner.flags.playedLuxuryThisTurn = true;
+}
+
+function processInvestments(player, opponent) {
+  const completed = [];
+  player.luxuries.forEach((investment) => {
+    if (investment.kind !== "investment") return;
+    const card = CARD_BY_ID[investment.cardId];
+    applyLuxuryCashEffect(player, opponent, investment.cardId);
+    investment.turnsLeft -= 1;
+    player.stats.luxuriesCashed += 1;
+    addImpact("luxury", player.side);
+    addLog(`「${card.name}」產生投資收益，剩餘 ${investment.turnsLeft} 次。`);
+    if (investment.turnsLeft <= 0) completed.push(investment);
+  });
+  completed.forEach((investment) => {
+    player.luxuries = player.luxuries.filter((item) => item.uid !== investment.uid);
+    player.discard.push(investment.cardId);
+    addLog(`「${CARD_BY_ID[investment.cardId].name}」投資到期。`);
+  });
 }
 
 function applyLuxuryUnitBonus(unit, cardId) {
@@ -3377,7 +3586,9 @@ function applyLuxuryUnitBonus(unit, cardId) {
     case "quantum_runway_sneakers":
     case "executive_airliner":
     case "chrome_rush_gauntlet":
+    case "meteor_fist_gauntlet":
       bonus.attack = 1;
+      if (cardId === "meteor_fist_gauntlet") bonus.attack = 2;
       readyUnit(unit);
       break;
     case "limited_watch":
@@ -3395,8 +3606,14 @@ function applyLuxuryUnitBonus(unit, cardId) {
     case "stealth_data_bag":
     case "orbital_limo":
     case "aegis_guard_gauntlet":
+    case "ghost_key_gauntlet":
       bonus.attack = 1;
       bonus.health = 1;
+      break;
+    case "sovereign_gauntlet":
+      bonus.health = 2;
+      bonus.grantedGuard = !unit.guard;
+      unit.guard = true;
       break;
     case "designer_jacket":
       bonus.health = 3;
@@ -3608,6 +3825,15 @@ function detachLuxury(owner, found) {
 
 function applyLuxuryCashEffect(owner, opponent, cardId) {
   switch (cardId) {
+    case "meteor_fist_gauntlet":
+      damageHero(opponent, 2, owner);
+      break;
+    case "ghost_key_gauntlet":
+      drawCards(owner, 2);
+      break;
+    case "sovereign_gauntlet":
+      gainShield(owner, 4);
+      break;
     case "cyber_car":
     case "aurora_hypercar":
     case "solar_supercar":
@@ -3709,6 +3935,7 @@ function endPlayerTurn() {
   if (!canPlayerAct()) return;
   game.pending = null;
   game.selectedAttacker = null;
+  game.selectedHeroAttack = false;
   processEndOfTurn(game.player, game.ai);
   if (checkGameOver()) {
     renderGame();
@@ -3719,9 +3946,10 @@ function endPlayerTurn() {
   window.setTimeout(runAiTurn, 550);
 }
 
-async function runAiTurn() {
+async function runAiTurn(skipStart = false) {
   if (!game || game.gameOver) return;
-  startTurn(game.ai, game.player);
+  if (!skipStart) startTurn(game.ai, game.player);
+  if (game.ai.batteryAvailable) useBackupBattery(game.ai);
 
   let guard = 0;
   while (guard < 12) {
@@ -3733,6 +3961,7 @@ async function runAiTurn() {
   }
 
   if (!game.gameOver) useAiHeroSkill();
+  if (!game.gameOver) aiHeroAttack();
   if (!game.gameOver) aiAttack();
   processEndOfTurn(game.ai, game.player);
 
@@ -3742,6 +3971,15 @@ async function runAiTurn() {
   }
   renderGame();
   clearImpactsSoon();
+}
+
+function aiHeroAttack() {
+  if (!canHeroAttack(game.ai)) return;
+  const guards = game.player.board.filter((unit) => unit.guard);
+  const target = guards.length
+    ? { kind: "unit", owner: "player", uid: guards[0].uid }
+    : { kind: "hero", owner: "player" };
+  resolveHeroAttack(game.ai, game.player, target, false);
 }
 
 function chooseAiPlayableCard() {
@@ -3768,6 +4006,11 @@ async function playAiCard(handIndex) {
   const owner = game.ai;
   const opponent = game.player;
   const card = CARD_BY_ID[owner.hand[handIndex]];
+  if (card.type === "luxury") {
+    await showPlayedCard(card, owner);
+    resolvePlayCard(owner, opponent, handIndex, null);
+    return;
+  }
   const target = chooseAiTarget(card);
   if (needsTarget(card) && !target) return;
   await playCardWithReveal(owner, opponent, handIndex, target);
@@ -3861,8 +4104,12 @@ function startTurn(player, opponent) {
   player.flags.firstUnitPlayed = false;
   player.flags.firstProgramPlayed = false;
   player.flags.playedLuxuryThisTurn = false;
+  player.flags.operatorPassiveUsed = false;
+  player.flags.heroAttacked = false;
+  if (player.side === "player") player.stats.turns += 1;
   readyBoardForTurn(player);
   drawCards(player, DRAW_PER_TURN);
+  processInvestments(player, opponent);
   processStartOfTurn(player, opponent);
 }
 
@@ -3954,11 +4201,52 @@ function resolveAttack(owner, opponent, attackerUid, target, shouldRender = true
   }
 }
 
+function resolveHeroAttack(owner, opponent, target, shouldRender = true) {
+  const equipped = findOperatorWeapon(owner);
+  if (!equipped || owner.flags.heroAttacked || !isLegalAttackTarget(owner, opponent, target)) return;
+  const { attachment, weapon } = equipped;
+  owner.flags.heroAttacked = true;
+  game.selectedHeroAttack = false;
+  addImpact("hero", owner.side);
+  markTargetImpact(target);
+
+  if (target.kind === "hero") {
+    damageHero(opponent, weapon.attack, owner);
+    addLog(`${owner.name}使用${weapon.type}攻擊${opponent.name}。`);
+  } else {
+    const defender = opponent.board.find((unit) => unit.uid === target.uid);
+    if (!defender) return;
+    damageUnit(defender, weapon.attack);
+    damageHero(owner, defender.attack, opponent);
+    addLog(`${owner.name}使用${weapon.type}攻擊「${defender.name}」。`);
+  }
+
+  attachment.durability -= 1;
+  if (attachment.durability <= 0) {
+    const index = owner.luxuries.findIndex((item) => item.uid === attachment.uid);
+    if (index >= 0) owner.luxuries.splice(index, 1);
+    owner.discard.push(attachment.cardId);
+    addLog(`${owner.name}的${weapon.type}耗盡耐久。`);
+  }
+
+  cleanupDeadUnits();
+  checkGameOver();
+  if (shouldRender) {
+    renderGame();
+    clearImpactsSoon();
+  }
+}
+
 function canPlayCard(player, card) {
   if (!game || game.gameOver || !card) return false;
   if (player.side === "player" && !canPlayerAct()) return false;
   if (player.energy < getPlayableCost(card, player)) return false;
   if (card.type === "unit" && player.board.length >= MAX_BOARD) return false;
+  if (
+    card.type === "luxury" &&
+    !OPERATOR_WEAPONS[card.id] &&
+    player.luxuries.filter((item) => item.kind === "investment").length >= MAX_OPERATOR_LUXURIES
+  ) return false;
   if (needsTarget(card) && getLegalTargetsForCard(card, player, getOpponent(player)).length === 0) return false;
   return true;
 }
@@ -3968,11 +4256,14 @@ function canPlayerAct() {
 }
 
 function needsTarget(card) {
-  return card.type === "luxury" || Boolean(card.target);
+  return Boolean(card.target);
 }
 
 function getPlayableCost(card, player) {
   let cost = card.cost;
+  if (card.type === "program" && player.operatorId === "hacker" && !player.flags.firstProgramPlayed) {
+    cost -= 1;
+  }
   if (
     card.type === "program" &&
     (hasOperatorLuxury(player, "private_jet") ||
@@ -3995,14 +4286,7 @@ function consumeDiscount(player) {
 
 function getLegalTargetsForCard(card, owner, opponent) {
   if (card.type === "luxury") {
-    const targets = [];
-    if (owner.luxuries.length < MAX_OPERATOR_LUXURIES && !hasOperatorLuxury(owner, card.id)) {
-      targets.push({ kind: "hero", owner: owner.side });
-    }
-    owner.board.forEach((unit) => {
-      if (!unit.luxury) targets.push({ kind: "unit", owner: owner.side, uid: unit.uid });
-    });
-    return targets;
+    return [];
   }
 
   if (card.target === "friendlyUnit") {
@@ -4038,10 +4322,12 @@ function isLegalAttackTarget(owner, opponent, target) {
 function isTargetNodeLegal(target) {
   if (!canPlayerAct()) return false;
   if (game.pending) {
+    if (game.pending.type !== "playCard") return false;
     const card = CARD_BY_ID[game.pending.cardId];
     return isLegalCardTarget(card, game.player, game.ai, target);
   }
   if (game.selectedAttacker) return isLegalAttackTarget(game.player, game.ai, target);
+  if (game.selectedHeroAttack) return isLegalAttackTarget(game.player, game.ai, target);
   return false;
 }
 
@@ -4064,7 +4350,7 @@ function findUnitByUid(uid) {
 }
 
 function hasOperatorLuxury(player, cardId) {
-  return player.luxuries.some((luxury) => luxury.cardId === cardId);
+  return player.luxuries.some((luxury) => luxury.cardId === cardId && luxury.kind !== "investment");
 }
 
 function countAttachedLuxuries(player) {
@@ -4129,6 +4415,7 @@ function damageHero(player, amount, sourcePlayer = null, ignoreReduction = false
   incoming -= blocked;
   player.life = Math.max(0, player.life - incoming);
   if (sourcePlayer && incoming + blocked > 0) {
+    sourcePlayer.stats.heroDamage += incoming + blocked;
     addLog(`${sourcePlayer.name}造成 ${incoming + blocked} 點傷害。`);
   }
 }
@@ -4156,7 +4443,13 @@ function healHero(player, amount) {
 }
 
 function gainShield(player, amount) {
-  player.shield += amount;
+  let total = amount;
+  if (player.operatorId === "corp" && !player.flags.operatorPassiveUsed && amount > 0) {
+    total += 1;
+    player.flags.operatorPassiveUsed = true;
+    addLog(`資本緩衝讓${player.name}額外獲得 1 點護盾。`);
+  }
+  player.shield += total;
 }
 
 function summonToken(player, name, attack, health, guard = false) {
@@ -4185,8 +4478,10 @@ function cleanupDeadUnits() {
     const dead = player.board.filter((unit) => unit.health <= 0);
     dead.forEach((unit) => {
       if (unit.luxury) {
+        player.discard.push(unit.luxury.cardId);
         addLog(`「${CARD_BY_ID[unit.luxury.cardId].name}」隨「${unit.name}」離場。`);
       }
+      if (unit.cardId !== "token" && CARD_BY_ID[unit.cardId]) player.discard.push(unit.cardId);
       addLog(`「${unit.name}」被摧毀。`);
     });
     player.board = player.board.filter((unit) => unit.health > 0);
@@ -4199,6 +4494,7 @@ function checkGameOver() {
     game.gameOver = true;
     game.pending = null;
     game.selectedAttacker = null;
+    game.selectedHeroAttack = false;
     addLog(game.player.life > 0 ? "你贏得了這場牌局。" : "對手贏得了這場牌局。");
     if (game.player.life > 0) completeStoryBattle();
     return true;

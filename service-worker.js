@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-card-game-v1";
+const CACHE_NAME = "cyber-card-game-v4";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
@@ -6,8 +6,8 @@ const OFFLINE_ASSETS = [
   "./story.html",
   "./guide.html",
   "./styles.css",
-  "./styles.css?v=mobile-gauntlets-20260713",
-  "./script.js?v=unit-balance-webp-20260713",
+  "./styles.css?v=investment-weapons-20260714",
+  "./script.js?v=investment-weapons-20260714b",
   "./modifier.js?v=webp-20260713",
   "./story.js",
   "./pwa.js",
@@ -21,7 +21,7 @@ const OFFLINE_ASSETS = [
   "./assets/card-art-atlas-2.webp",
   "./assets/card-art-atlas-3.webp",
   "./assets/card-art-atlas-4.webp",
-  "./assets/card-art-atlas-5.webp",
+  "./assets/card-art-atlas-5.webp?v=weapons-20260714",
   "./assets/story-clear-atlas.png"
 ];
 
