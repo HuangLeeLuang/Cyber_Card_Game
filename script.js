@@ -1896,7 +1896,82 @@ CARDS.push(
   },
 );
 
+CARDS.push(
+  {
+    id: "chrome_rush_gauntlet",
+    name: "鉻鋼疾襲拳套",
+    type: "luxury",
+    faction: "neutral",
+    cost: 2,
+    atlas: 5,
+    art: 24,
+    text: "裝備單位：+1 攻擊並可立即攻擊。裝備操作者：每回合第一個單位可立即攻擊。變現：本回合獲得 2 能量。",
+    cashText: "本回合獲得 2 能量。",
+  },
+  {
+    id: "aegis_guard_gauntlet",
+    name: "神盾護衛拳套",
+    type: "luxury",
+    faction: "corp",
+    cost: 3,
+    atlas: 5,
+    art: 25,
+    text: "裝備單位：+1/+1。裝備操作者：每回合第一次受到的英雄傷害 -1。變現：獲得 3 護盾。",
+    cashText: "獲得 3 護盾。",
+  },
+  {
+    id: "cipher_pulse_gauntlet",
+    name: "密碼脈衝拳套",
+    type: "luxury",
+    faction: "hacker",
+    cost: 2,
+    atlas: 5,
+    art: 26,
+    text: "裝備單位：+0/+1。裝備操作者：若你沒有手牌，回合開始抽 1 張牌。變現：抽 1 張牌，下一張牌費用 -1。",
+    cashText: "抽 1 張牌，下一張牌費用 -1。",
+  },
+);
+
 const NEW_CARD_TEXT_FIXES = {
+  cyber_car: {
+    type: "unit",
+    attack: 3,
+    health: 2,
+    charge: true,
+    text: "載具。快攻。高速但較脆弱的前線單位。",
+  },
+  aurora_hypercar: {
+    type: "unit",
+    attack: 2,
+    health: 3,
+    charge: true,
+    text: "載具。快攻。進場時獲得 1 護盾。",
+    effect: "gain_shield_1",
+  },
+  armored_limo: {
+    type: "unit",
+    attack: 2,
+    health: 5,
+    guard: true,
+    text: "載具。守衛。進場時獲得 1 護盾。",
+    effect: "gain_shield_1",
+  },
+  sky_estate: {
+    type: "unit",
+    attack: 1,
+    health: 6,
+    guard: true,
+    text: "設施。守衛。進場時獲得 2 護盾。",
+    effect: "gain_shield_2",
+  },
+  sky_penthouse: {
+    type: "unit",
+    attack: 2,
+    health: 6,
+    guard: true,
+    text: "設施。守衛。進場時恢復操作者 2 生命。",
+    effect: "heal_hero_2",
+  },
   skyline_patrol: { name: "天幕巡警", text: "進場：若你有已裝備的奢侈品，抽 1 張牌。" },
   neon_food_runner: { name: "夜市快送員", text: "快攻。" },
   archive_paramedic: { name: "檔案醫護員", text: "進場：回復操作者 2 生命。" },
@@ -1915,8 +1990,11 @@ const NEW_CARD_TEXT_FIXES = {
   overclock_lace: { name: "超頻鞋帶", text: "使一個友方單位 +2/+0 並準備。" },
   solar_supercar: {
     name: "日冕超跑",
-    text: "裝備單位：+1 攻擊並準備。裝備操作者：每回合第一個打出的單位獲得快攻。變現：獲得 2 能量。",
-    cashText: "獲得 2 能量。",
+    type: "unit",
+    attack: 3,
+    health: 2,
+    charge: true,
+    text: "載具。快攻。以太陽動力發動突擊。",
   },
   chrono_boutique_watch: {
     name: "時序名錶",
@@ -1947,8 +2025,11 @@ const NEW_CARD_TEXT_FIXES = {
   riot_plating: { name: "鎮暴鍍層", text: "使一個友方單位 +1/+2 並獲得守衛。" },
   graviton_motorcycle: {
     name: "重力機車",
-    text: "裝備單位：+1 攻擊並準備。裝備操作者：每回合第一個打出的單位獲得快攻。變現：獲得 2 能量。",
-    cashText: "獲得 2 能量。",
+    type: "unit",
+    attack: 3,
+    health: 1,
+    charge: true,
+    text: "載具。快攻。低生命的高速突擊單位。",
   },
   obsidian_cruiser: {
     name: "黑曜郵輪",
@@ -1987,8 +2068,11 @@ const NEW_CARD_TEXT_FIXES = {
   executive_exosuit: { name: "高管外骨骼", text: "使一個友方單位 +0/+3 並獲得守衛。" },
   orbital_limo: {
     name: "軌道禮車",
-    text: "裝備單位：+1/+1。裝備操作者：每回合第一次受到傷害 -1。變現：獲得 3 護盾。",
-    cashText: "獲得 3 護盾。",
+    type: "unit",
+    attack: 3,
+    health: 5,
+    guard: true,
+    text: "載具。守衛。企業級軌道護送車。",
   },
   sapphire_skytower: {
     name: "藍寶石天塔",
@@ -2043,11 +2127,11 @@ const MAX_ENERGY = ACTIVE_RULES.maxEnergy;
 const OPENING_HAND = ACTIVE_RULES.openingHand;
 const DRAW_PER_TURN = ACTIVE_RULES.drawPerTurn;
 const ART_ATLASES = {
-  1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas.png)" },
-  2: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-2.png)" },
-  3: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-3.png)" },
-  4: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-4.png)" },
-  5: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-5.png)" },
+  1: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas.webp)" },
+  2: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-2.webp)" },
+  3: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-3.webp)" },
+  4: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-4.webp)" },
+  5: { columns: 6, rows: 6, ratio: "1 / 1", zoom: 1, image: "url(assets/card-art-atlas-5.webp)" },
 };
 
 let selectedOperator = "merc";
@@ -2089,6 +2173,7 @@ function cacheElements() {
   elements.deckList = document.querySelector("#deckList");
   elements.deckCount = document.querySelector("#deckCount");
   elements.luxuryCount = document.querySelector("#luxuryCount");
+  elements.deckTypeMix = document.querySelector("#deckTypeMix");
   elements.deckMeterFill = document.querySelector("#deckMeterFill");
   elements.startGameBtn = document.querySelector("#startGameBtn");
   elements.quickBuildBtn = document.querySelector("#quickBuildBtn");
@@ -2467,8 +2552,19 @@ function renderDeckList() {
 
   const total = getDeckTotal();
   const luxuryTotal = getDeckLuxuryTotal();
+  const typeCounts = Object.entries(deckCounts).reduce(
+    (counts, [id, count]) => {
+      const type = CARD_BY_ID[id]?.type;
+      if (type) counts[type] += count;
+      return counts;
+    },
+    { unit: 0, program: 0, mod: 0, luxury: 0 },
+  );
   elements.deckCount.textContent = `${total} / ${DECK_SIZE}`;
   elements.luxuryCount.textContent = `奢侈品 ${luxuryTotal} / ${MAX_DECK_LUXURIES}`;
+  elements.deckTypeMix.innerHTML = Object.entries(typeCounts)
+    .map(([type, count]) => `<span data-type="${type}"><strong>${count}</strong>${CARD_TYPES[type]}</span>`)
+    .join("");
   elements.deckMeterFill.style.width = `${Math.min(100, (total / DECK_SIZE) * 100)}%`;
   elements.startGameBtn.disabled = total !== DECK_SIZE;
 }
@@ -3216,7 +3312,8 @@ function summonUnit(owner, opponent, card) {
     (hasOperatorLuxury(owner, "cyber_car") ||
       hasOperatorLuxury(owner, "aurora_hypercar") ||
       hasOperatorLuxury(owner, "solar_supercar") ||
-      hasOperatorLuxury(owner, "graviton_motorcycle")) &&
+      hasOperatorLuxury(owner, "graviton_motorcycle") ||
+      hasOperatorLuxury(owner, "chrome_rush_gauntlet")) &&
     !owner.flags.firstUnitPlayed
   ) {
     unit.canAttack = true;
@@ -3279,6 +3376,7 @@ function applyLuxuryUnitBonus(unit, cardId) {
     case "graviton_motorcycle":
     case "quantum_runway_sneakers":
     case "executive_airliner":
+    case "chrome_rush_gauntlet":
       bonus.attack = 1;
       readyUnit(unit);
       break;
@@ -3287,6 +3385,7 @@ function applyLuxuryUnitBonus(unit, cardId) {
     case "crypto_timepiece":
     case "chrono_boutique_watch":
     case "legacy_watch":
+    case "cipher_pulse_gauntlet":
       bonus.health = 1;
       break;
     case "black_card_bag":
@@ -3295,6 +3394,7 @@ function applyLuxuryUnitBonus(unit, cardId) {
     case "armored_limo":
     case "stealth_data_bag":
     case "orbital_limo":
+    case "aegis_guard_gauntlet":
       bonus.attack = 1;
       bonus.health = 1;
       break;
@@ -3512,6 +3612,7 @@ function applyLuxuryCashEffect(owner, opponent, cardId) {
     case "aurora_hypercar":
     case "solar_supercar":
     case "graviton_motorcycle":
+    case "chrome_rush_gauntlet":
       owner.energy += 2;
       break;
     case "limited_watch":
@@ -3534,6 +3635,7 @@ function applyLuxuryCashEffect(owner, opponent, cardId) {
     case "designer_jacket":
     case "armored_limo":
     case "orbital_limo":
+    case "aegis_guard_gauntlet":
       gainShield(owner, 3);
       break;
     case "sky_estate":
@@ -3559,6 +3661,7 @@ function applyLuxuryCashEffect(owner, opponent, cardId) {
       gainShield(owner, 1);
       break;
     case "crypto_timepiece":
+    case "cipher_pulse_gauntlet":
       drawCards(owner, 1);
       owner.nextDiscount += 1;
       break;
@@ -3791,7 +3894,10 @@ function processStartOfTurn(player, opponent) {
     drawCards(player, 1);
     addLog(`限量名錶讓${player.name}補進 1 張牌。`);
   }
-  if (hasOperatorLuxury(player, "crypto_timepiece") && player.hand.length === 0) {
+  if (
+    (hasOperatorLuxury(player, "crypto_timepiece") || hasOperatorLuxury(player, "cipher_pulse_gauntlet")) &&
+    player.hand.length === 0
+  ) {
     drawCards(player, 1);
     addLog(`加密時計讓${player.name}補進 1 張牌。`);
   }
@@ -4010,7 +4116,8 @@ function damageHero(player, amount, sourcePlayer = null, ignoreReduction = false
     !ignoreReduction &&
     (hasOperatorLuxury(player, "designer_jacket") ||
       hasOperatorLuxury(player, "armored_limo") ||
-      hasOperatorLuxury(player, "orbital_limo")) &&
+      hasOperatorLuxury(player, "orbital_limo") ||
+      hasOperatorLuxury(player, "aegis_guard_gauntlet")) &&
     !player.flags.jacketUsed
   ) {
     incoming = Math.max(0, incoming - 1);
