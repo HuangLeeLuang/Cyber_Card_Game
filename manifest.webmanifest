@@ -1,14 +1,17 @@
 {
+  "id": "./",
   "name": "賽博牌局",
   "short_name": "賽博牌局",
   "description": "15 張牌的短局賽博卡片對戰",
   "lang": "zh-Hant",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#050911",
   "theme_color": "#07111d",
+  "categories": ["games", "entertainment"],
   "icons": [
     {
       "src": "assets/app-icon-192.png",

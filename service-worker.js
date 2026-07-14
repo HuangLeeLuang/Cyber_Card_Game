@@ -1,77 +1,145 @@
-const CACHE_NAME = "cyber-card-game-v12";
-const OFFLINE_ASSETS = [
+const CACHE_NAME = "cyber-card-game-v13";
+const CORE_ASSETS = [
   "./",
   "./index.html",
-  "./modifier.html",
-  "./story.html",
-  "./guide.html",
-  "./styles.css",
+  "./manifest.webmanifest",
+  "./asset-manifest.json",
   "./styles.css?v=random-opponent-20260714",
   "./script.js?v=random-opponent-20260714",
-  "./modifier.js?v=webp-20260713",
-  "./story.js",
-  "./pwa.js?v=offline-status-20260714",
-  "./manifest.webmanifest",
+  "./pwa.js?v=offline-manager-20260714",
   "./assets/app-icon-180.png",
   "./assets/app-icon-192.png",
   "./assets/app-icon-512.png",
-  "./assets/card-back.svg",
-  "./assets/cyber-city.svg",
-  "./assets/cyber-home.webp",
-  "./assets/card-art-atlas.webp",
-  "./assets/card-art-atlas-2.webp",
-  "./assets/card-art-atlas-3.webp",
-  "./assets/card-art-atlas-4.webp",
-  "./assets/card-art-atlas-5.webp?v=weapons-20260714",
-  "./assets/story-clear-atlas.png"
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_ASSETS)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(CORE_ASSETS);
+      await cacheOptionalAssets(cache, 12);
+      await self.skipWaiting();
+    })(),
+  );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
-      .then(() => self.clients.claim()),
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((key) => key.startsWith("cyber-card-game-") && key !== CACHE_NAME).map((key) => caches.delete(key)));
+      await self.clients.claim();
+    })(),
   );
 });
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
 
   if (event.request.mode === "navigate") {
+    const update = fetch(event.request).then(async (response) => {
+      if (response.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put("./index.html", response.clone());
+      }
+      return response;
+    });
+    event.waitUntil(update.catch(() => {}));
     event.respondWith(
-      caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = (await cache.match("./index.html", { ignoreSearch: true })) || (await cache.match("./", { ignoreSearch: true }));
         if (cached) return cached;
-        return fetch(event.request)
-          .then((response) => {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-            return response;
-          })
-          .catch(() => caches.match("./index.html", { ignoreSearch: true }));
-      }),
+        try {
+          return await update;
+        } catch {
+          return new Response("<!doctype html><meta charset='utf-8'><title>離線啟動失敗</title><h1>尚未完成離線安裝</h1><p>請先連線開啟遊戲，按下「準備完整離線資料」。</p>", {
+            status: 503,
+            headers: { "Content-Type": "text/html; charset=utf-8" },
+          });
+        }
+      })(),
     );
     return;
   }
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
+    (async () => {
+      const cached = await caches.match(event.request);
       if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          if (!response || response.status !== 200 || response.type === "opaque") return response;
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => {
-          if (event.request.mode === "navigate") return caches.match("./index.html");
-          return Response.error();
-        });
-    }),
+      try {
+        const response = await fetch(event.request);
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, response.clone());
+        }
+        return response;
+      } catch {
+        return new Response("", { status: 504, statusText: "Offline" });
+      }
+    })(),
   );
 });
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+  if (event.data?.type === "CACHE_STATUS") {
+    event.waitUntil(reportCacheStatus(event));
+  }
+  if (event.data?.type === "PREPARE_OFFLINE") {
+    event.waitUntil(prepareOffline(event));
+  }
+});
+
+async function getOptionalAssets() {
+  const response = await fetch("./asset-manifest.json", { cache: "no-store" });
+  return response.json();
+}
+
+async function cacheOptionalAssets(cache, batchSize) {
+  try {
+    const assets = await getOptionalAssets();
+    for (let index = 0; index < assets.length; index += batchSize) {
+      await Promise.allSettled(assets.slice(index, index + batchSize).map((url) => cache.add(url)));
+    }
+  } catch {
+    // Core files still provide a working offline game.
+  }
+}
+
+async function reportCacheStatus(event) {
+  const cache = await caches.open(CACHE_NAME);
+  const assets = await getOptionalAssets().catch(() => []);
+  const keys = await cache.keys();
+  event.source?.postMessage({ type: "CACHE_STATUS", count: keys.length, total: CORE_ASSETS.length + assets.length, version: CACHE_NAME });
+}
+
+async function prepareOffline(event) {
+  let failures = 0;
+  const cache = await caches.open(CACHE_NAME);
+  for (const url of CORE_ASSETS) {
+    try {
+      await cache.add(url);
+    } catch {
+      failures += 1;
+    }
+  }
+  const assets = await getOptionalAssets().catch(() => {
+    failures += 1;
+    return [];
+  });
+  for (let index = 0; index < assets.length; index += 8) {
+    const results = await Promise.allSettled(assets.slice(index, index + 8).map((url) => cache.add(url)));
+    failures += results.filter((result) => result.status === "rejected").length;
+  }
+  const keys = await cache.keys();
+  event.source?.postMessage({
+    type: "OFFLINE_READY",
+    count: keys.length,
+    total: CORE_ASSETS.length + assets.length,
+    version: CACHE_NAME,
+    failures,
+  });
+}
