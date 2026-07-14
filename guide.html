@@ -4,8 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#07111d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>賽博牌局攻略</title>
-    <link rel="stylesheet" href="styles.css?v=luxury-details-20260714" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/app-icon-home-180.png?v=20260714" />
+    <link rel="stylesheet" href="styles.css?v=iphone-offline-20260714" />
   </head>
   <body>
     <div class="backdrop" aria-hidden="true"></div>
@@ -29,6 +32,25 @@
 
       <div class="page-grid">
         <section class="content-panel">
+          <div id="iphoneOfflinePanel" class="section-band offline-guide" data-state="pending">
+            <h2>iPhone 離線遊玩</h2>
+            <p id="offlineStatusText" class="offline-guide-status">正在讀取離線狀態…</p>
+            <p id="offlineStatusDetail" class="offline-guide-detail">正在讀取快取狀態…</p>
+            <div class="button-row">
+              <button id="prepareOfflineBtn" class="primary-button" type="button">準備完整離線資料</button>
+              <button id="refreshOfflineBtn" class="ghost-button" type="button">檢查遊戲更新</button>
+            </div>
+            <ol class="offline-install-steps">
+              <li>保持網路連線，按「準備完整離線資料」。</li>
+              <li>保持攻略頁開啟，等到顯示「完整離線已就緒」。</li>
+              <li>回到<a href="./">遊戲首頁</a>，刪除原有主畫面圖示後重新加入。</li>
+              <li>建議先到修改器匯出自製卡牌與設定，保留一份備份。</li>
+              <li>在 Safari 點「分享 → 加入主畫面」，並啟用「以 Web App 打開」。可參考 <a href="https://support.apple.com/en-gb/guide/iphone/iphea86e5236/ios" target="_blank" rel="noreferrer">Apple iPhone 使用說明</a>。</li>
+              <li>保持連線從新圖示啟動一次，再完全關閉遊戲並用飛航模式測試。</li>
+            </ol>
+            <p class="offline-guide-note">離線時請從新建立的主畫面 Web App 圖示啟動，不要從 Safari 舊分頁、書籤或瀏覽紀錄啟動。</p>
+          </div>
+
           <div class="section-band">
             <h2>勝利目標</h2>
             <p>把對手操作者生命降到 0。預設每副牌 15 張、生命 20、能量每回合 +1 並最高到 5。遊戲設計成短局，通常幾分鐘就能分出勝負。</p>
@@ -113,6 +135,6 @@
         </aside>
       </div>
     </main>
-    <script src="legacy-worker-cleanup.js?v=20260714"></script>
+    <script src="pwa.js?v=guide-offline-20260714"></script>
   </body>
 </html>
