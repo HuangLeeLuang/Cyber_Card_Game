@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-card-game-v10";
+const CACHE_NAME = "cyber-card-game-v11";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
@@ -10,7 +10,7 @@ const OFFLINE_ASSETS = [
   "./script.js?v=random-opponent-20260714",
   "./modifier.js?v=webp-20260713",
   "./story.js",
-  "./pwa.js",
+  "./pwa.js?v=offline-ready-20260714",
   "./manifest.webmanifest",
   "./assets/app-icon-180.png",
   "./assets/app-icon-192.png",
@@ -44,13 +44,16 @@ self.addEventListener("fetch", (event) => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html"))),
+      caches.match(event.request, { ignoreSearch: true }).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request)
+          .then((response) => {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+            return response;
+          })
+          .catch(() => caches.match("./index.html", { ignoreSearch: true }));
+      }),
     );
     return;
   }
