@@ -10,9 +10,19 @@
     <title>賽博牌局</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="assets/app-icon-180.png" />
-    <link rel="stylesheet" href="styles.css?v=investment-weapons-20260714" />
+    <link rel="stylesheet" href="styles.css?v=random-opponent-20260714" />
   </head>
-  <body>
+  <body class="landing-active">
+    <section id="landingView" class="landing-view" aria-labelledby="landingTitle" role="button" tabindex="0">
+      <img class="landing-art" src="assets/cyber-home.webp" alt="兩名賽博操作者在未來城市的全息牌桌上交鋒" />
+      <div class="landing-shade" aria-hidden="true"></div>
+      <div class="landing-content">
+        <p class="landing-kicker">CYBER CARD GAME</p>
+        <h1 id="landingTitle">賽博牌局</h1>
+        <p>組建你的牌組，在短回合中掌控單位、程式、改造與投資。</p>
+        <button id="enterGameBtn" class="landing-enter" type="button">進入牌局</button>
+      </div>
+    </section>
     <div class="backdrop" aria-hidden="true"></div>
     <div id="playReveal" class="play-reveal" hidden aria-live="polite"></div>
     <main class="app">
@@ -34,6 +44,7 @@
       </header>
 
       <section id="builderView" class="view active" aria-labelledby="builderTitle">
+        <div id="builderNotice" class="builder-notice" hidden aria-live="polite"></div>
         <div id="storyBattleBanner" class="story-battle-banner" hidden></div>
         <div class="builder-layout">
           <aside class="panel operator-panel">
@@ -42,11 +53,21 @@
             </div>
             <div id="operatorList" class="operator-list"></div>
             <div id="operatorDetail" class="operator-detail"></div>
+            <label class="opponent-picker" for="opponentSelect">
+              <span>一般對戰對手</span>
+              <select id="opponentSelect">
+                <option value="random">隨機對手</option>
+                <option value="merc">街頭傭兵</option>
+                <option value="hacker">黑帽駭客</option>
+                <option value="corp">企業主管</option>
+              </select>
+              <small>隨機模式會優先避開與你相同的操作者。</small>
+            </label>
             <div class="rule-stack">
               <div><strong>牌組</strong><span>預設 15 張，可調整</span></div>
               <div><strong>同名</strong><span>最多 2 張</span></div>
               <div><strong>奢侈品</strong><span>預設最多 4 張</span></div>
-              <div><strong>投資</strong><span>每回合自動產生收益</span></div>
+              <div><strong>升值</strong><span>留在手牌最高升值 +2</span></div>
             </div>
             <div class="button-row">
               <button id="quickBuildBtn" class="primary-button">快速配牌</button>
@@ -135,7 +156,7 @@
       </section>
     </main>
     <div id="storyResult" class="story-result" hidden aria-live="polite"></div>
-    <script src="script.js?v=investment-weapons-20260714b"></script>
+    <script src="script.js?v=random-opponent-20260714"></script>
     <script src="pwa.js"></script>
   </body>
 </html>

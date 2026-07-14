@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-card-game-v4";
+const CACHE_NAME = "cyber-card-game-v10";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
@@ -6,8 +6,8 @@ const OFFLINE_ASSETS = [
   "./story.html",
   "./guide.html",
   "./styles.css",
-  "./styles.css?v=investment-weapons-20260714",
-  "./script.js?v=investment-weapons-20260714b",
+  "./styles.css?v=random-opponent-20260714",
+  "./script.js?v=random-opponent-20260714",
   "./modifier.js?v=webp-20260713",
   "./story.js",
   "./pwa.js",
@@ -17,6 +17,7 @@ const OFFLINE_ASSETS = [
   "./assets/app-icon-512.png",
   "./assets/card-back.svg",
   "./assets/cyber-city.svg",
+  "./assets/cyber-home.webp",
   "./assets/card-art-atlas.webp",
   "./assets/card-art-atlas-2.webp",
   "./assets/card-art-atlas-3.webp",
@@ -26,7 +27,7 @@ const OFFLINE_ASSETS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_ASSETS)));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_ASSETS)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {
@@ -40,6 +41,19 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html"))),
+    );
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
