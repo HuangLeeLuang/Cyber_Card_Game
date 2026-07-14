@@ -2239,11 +2239,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!document.querySelector("#cardLibrary")) return;
   cacheElements();
   bindStaticEvents();
-  if (sessionStorage.getItem("cyberEntrySeen") === "1") dismissLanding();
+  const requestedView = new URLSearchParams(window.location.search).get("view");
+  if (requestedView === "builder" || requestedView === "game" || hasSeenEntry()) dismissLanding();
   activeStoryBattle = loadActiveStoryBattle();
   loadDeck();
   renderBuilder();
-  const requestedView = new URLSearchParams(window.location.search).get("view");
   if (requestedView === "game") {
     handleBattleNavigation();
   } else {
@@ -2346,9 +2346,21 @@ function bindStaticEvents() {
 }
 
 function enterSite() {
-  sessionStorage.setItem("cyberEntrySeen", "1");
+  try {
+    localStorage.setItem("cyberEntrySeen", "1");
+  } catch {
+    // The current page still opens even when storage is unavailable.
+  }
   dismissLanding();
   document.querySelector('.tab-button[data-view="builder"]')?.focus();
+}
+
+function hasSeenEntry() {
+  try {
+    return localStorage.getItem("cyberEntrySeen") === "1";
+  } catch {
+    return false;
+  }
 }
 
 function dismissLanding() {
