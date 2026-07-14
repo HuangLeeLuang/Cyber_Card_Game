@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#07111d" />
     <title>賽博牌局</title>
-    <link rel="stylesheet" href="styles.css?v=random-opponent-20260714" />
+    <script>
+      try {
+        const requestedView = new URLSearchParams(window.location.search).get("view");
+        if (requestedView === "builder" || requestedView === "game" || localStorage.getItem("cyberEntrySeen") === "1") {
+          document.documentElement.classList.add("skip-entry-screen");
+        }
+      } catch {
+        // The normal entry flow remains available when browser storage is blocked.
+      }
+    </script>
+    <link rel="stylesheet" href="styles.css?v=single-entry-no-flash-20260714" />
   </head>
   <body class="landing-active">
     <section id="landingView" class="landing-view" aria-labelledby="landingTitle" role="button" tabindex="0">

@@ -921,6 +921,15 @@ body.landing-active {
   overflow: hidden;
 }
 
+html.skip-entry-screen .landing-view {
+  display: none;
+}
+
+html.skip-entry-screen body.landing-active {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .landing-view {
   position: fixed;
   inset: 0;
