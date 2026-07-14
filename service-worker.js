@@ -1,4 +1,4 @@
-const CACHE_NAME = "cyber-card-game-v11";
+const CACHE_NAME = "cyber-card-game-v12";
 const OFFLINE_ASSETS = [
   "./",
   "./index.html",
@@ -10,7 +10,7 @@ const OFFLINE_ASSETS = [
   "./script.js?v=random-opponent-20260714",
   "./modifier.js?v=webp-20260713",
   "./story.js",
-  "./pwa.js?v=offline-ready-20260714",
+  "./pwa.js?v=offline-status-20260714",
   "./manifest.webmanifest",
   "./assets/app-icon-180.png",
   "./assets/app-icon-192.png",
