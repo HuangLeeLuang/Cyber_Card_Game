@@ -2239,10 +2239,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!document.querySelector("#cardLibrary")) return;
   cacheElements();
   bindStaticEvents();
+  if (sessionStorage.getItem("cyberEntrySeen") === "1") dismissLanding();
   activeStoryBattle = loadActiveStoryBattle();
   loadDeck();
   renderBuilder();
-  showView("builder");
+  const requestedView = new URLSearchParams(window.location.search).get("view");
+  if (requestedView === "game") {
+    handleBattleNavigation();
+  } else {
+    showView("builder");
+  }
 });
 
 if (typeof window !== "undefined") {
@@ -2340,9 +2346,14 @@ function bindStaticEvents() {
 }
 
 function enterSite() {
+  sessionStorage.setItem("cyberEntrySeen", "1");
+  dismissLanding();
+  document.querySelector('.tab-button[data-view="builder"]')?.focus();
+}
+
+function dismissLanding() {
   document.body.classList.remove("landing-active");
   if (elements.landingView) elements.landingView.hidden = true;
-  document.querySelector('.tab-button[data-view="builder"]')?.focus();
 }
 
 function handleBattleNavigation() {
