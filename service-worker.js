@@ -1,11 +1,11 @@
-const CACHE_VERSION = "cyber-card-game-v14";
+const CACHE_VERSION = "cyber-card-game-v15";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./asset-manifest.json",
   "./styles.css?v=iphone-offline-20260714",
-  "./script.js?v=single-entry-screen-20260714",
+  "./script.js?v=weapon-target-fix-20260714",
   "./pwa.js?v=guide-offline-20260714",
   "./assets/app-icon-home-180.png?v=20260714",
   "./assets/app-icon-192.png",

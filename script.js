@@ -3617,19 +3617,6 @@ async function handleTargetClick(target) {
   }
 
   if (game.selectedHeroAttack) {
-    elements.actionPanel.innerHTML = `
-      <div class="notice">操作者準備使用武器攻擊。</div>
-      <button class="ghost-button" id="cancelHeroAttackBtn">取消</button>
-    `;
-    document.querySelector("#cancelHeroAttackBtn").addEventListener("click", () => {
-      game.selectedHeroAttack = false;
-      renderGame();
-    });
-    return;
-  }
-
-
-  if (game.selectedHeroAttack) {
     if (!isLegalAttackTarget(game.player, game.ai, target)) return;
     resolveHeroAttack(game.player, game.ai, target);
     return;
